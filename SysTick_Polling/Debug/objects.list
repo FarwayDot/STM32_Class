@@ -1,0 +1,7 @@
+"./Drivers/CMSIS/ST/system_stm32f4xx.o"
+"./Src/RCC.o"
+"./Src/SysTick.o"
+"./Src/main.o"
+"./Src/syscalls.o"
+"./Src/sysmem.o"
+"./Startup/startup_stm32f401retx.o"

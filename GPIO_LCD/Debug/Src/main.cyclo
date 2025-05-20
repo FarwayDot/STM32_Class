@@ -1,0 +1,5 @@
+../Src/main.c:37:5:main	2
+../Src/main.c:63:6:delayMs	3
+../Src/main.c:76:6:flash_config	1
+../Src/main.c:88:6:GPIOA_Config	1
+../Src/main.c:107:6:GPIOC_Config	1

@@ -1,0 +1,6 @@
+../Src/DISPLAY_7_SEGM.c:37:6:InitPinAsOutput	4
+../Src/DISPLAY_7_SEGM.c:47:6:SevenSegment_Init	1
+../Src/DISPLAY_7_SEGM.c:64:6:SevenSegment_DisplayDigit	4
+../Src/DISPLAY_7_SEGM.c:85:6:SevenSegment_Clear	2
+../Src/DISPLAY_7_SEGM.c:93:6:SevenSegment_SelectDisplay	5
+../Src/DISPLAY_7_SEGM.c:110:6:SevenSegment_Integer	3

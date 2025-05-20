@@ -1,0 +1,7 @@
+E:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:2064:26:ITM_SendChar	4
+../Src/main.c:64:5:main	1
+../Src/main.c:91:6:flash_config	1
+../Src/main.c:103:6:HSI_Config	2
+../Src/main.c:118:6:HSE_Config	2
+../Src/main.c:133:6:PLL_Config	4
+../Src/main.c:208:5:__io_putchar	1

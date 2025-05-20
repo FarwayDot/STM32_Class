@@ -1,0 +1,4 @@
+../Src/RCC.c:10:6:flash_config	1
+../Src/RCC.c:61:6:HSI_Config_PLL	2
+../Src/RCC.c:73:6:HSE_Config_PLL	2
+../Src/RCC.c:85:6:PLL_Config	6
