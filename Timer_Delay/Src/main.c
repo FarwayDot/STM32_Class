@@ -53,7 +53,6 @@ int main(void)
 	{
 		GPIO_Write_Toggle(GPIOA, 5);
 		delay_ms_tim4(100);
-
 	}
 }
 

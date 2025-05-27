@@ -12,7 +12,8 @@ C_SRCS += \
 ../Src/main.c \
 ../Src/stm32f4xx_it.c \
 ../Src/syscalls.c \
-../Src/sysmem.c 
+../Src/sysmem.c \
+../Src/timer_capture.c 
 
 OBJS += \
 ./Src/Delay.o \
@@ -22,7 +23,8 @@ OBJS += \
 ./Src/main.o \
 ./Src/stm32f4xx_it.o \
 ./Src/syscalls.o \
-./Src/sysmem.o 
+./Src/sysmem.o \
+./Src/timer_capture.o 
 
 C_DEPS += \
 ./Src/Delay.d \
@@ -32,7 +34,8 @@ C_DEPS += \
 ./Src/main.d \
 ./Src/stm32f4xx_it.d \
 ./Src/syscalls.d \
-./Src/sysmem.d 
+./Src/sysmem.d \
+./Src/timer_capture.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -42,7 +45,7 @@ Src/%.o Src/%.su Src/%.cyclo: ../Src/%.c Src/subdir.mk
 clean: clean-Src
 
 clean-Src:
-	-$(RM) ./Src/Delay.cyclo ./Src/Delay.d ./Src/Delay.o ./Src/Delay.su ./Src/GPIO_Config.cyclo ./Src/GPIO_Config.d ./Src/GPIO_Config.o ./Src/GPIO_Config.su ./Src/RCC.cyclo ./Src/RCC.d ./Src/RCC.o ./Src/RCC.su ./Src/delay_timer.cyclo ./Src/delay_timer.d ./Src/delay_timer.o ./Src/delay_timer.su ./Src/main.cyclo ./Src/main.d ./Src/main.o ./Src/main.su ./Src/stm32f4xx_it.cyclo ./Src/stm32f4xx_it.d ./Src/stm32f4xx_it.o ./Src/stm32f4xx_it.su ./Src/syscalls.cyclo ./Src/syscalls.d ./Src/syscalls.o ./Src/syscalls.su ./Src/sysmem.cyclo ./Src/sysmem.d ./Src/sysmem.o ./Src/sysmem.su
+	-$(RM) ./Src/Delay.cyclo ./Src/Delay.d ./Src/Delay.o ./Src/Delay.su ./Src/GPIO_Config.cyclo ./Src/GPIO_Config.d ./Src/GPIO_Config.o ./Src/GPIO_Config.su ./Src/RCC.cyclo ./Src/RCC.d ./Src/RCC.o ./Src/RCC.su ./Src/delay_timer.cyclo ./Src/delay_timer.d ./Src/delay_timer.o ./Src/delay_timer.su ./Src/main.cyclo ./Src/main.d ./Src/main.o ./Src/main.su ./Src/stm32f4xx_it.cyclo ./Src/stm32f4xx_it.d ./Src/stm32f4xx_it.o ./Src/stm32f4xx_it.su ./Src/syscalls.cyclo ./Src/syscalls.d ./Src/syscalls.o ./Src/syscalls.su ./Src/sysmem.cyclo ./Src/sysmem.d ./Src/sysmem.o ./Src/sysmem.su ./Src/timer_capture.cyclo ./Src/timer_capture.d ./Src/timer_capture.o ./Src/timer_capture.su
 
 .PHONY: clean-Src
 

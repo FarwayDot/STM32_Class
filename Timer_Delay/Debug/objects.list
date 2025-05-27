@@ -7,4 +7,5 @@
 "./Src/stm32f4xx_it.o"
 "./Src/syscalls.o"
 "./Src/sysmem.o"
+"./Src/timer_capture.o"
 "./Startup/startup_stm32f401retx.o"
