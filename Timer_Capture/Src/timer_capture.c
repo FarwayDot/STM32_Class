@@ -8,7 +8,7 @@
 
 #include "timer_capture.h"
 
-void timer_capture_init(void)
+void timer_capture_conf(void)
 {
 	/*Enlazar registro CCR a TI1*/
 	TIM2 -> CCMR1 &= ~TIM_CCMR1_CC1S_Msk;

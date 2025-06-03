@@ -1,2 +1,2 @@
-../Src/timer_capture.c:11:6:timer_capture_init	4	static
+../Src/timer_capture.c:11:6:timer_capture_conf	4	static
 ../Src/timer_capture.c:31:6:timer_capture_start	4	static

@@ -19,7 +19,7 @@
 
 
 /* Prototipo de funciones */
-void timer_capture_init(void);
+void timer_capture_conf(void);
 void timer_capture_start(void);
 
 

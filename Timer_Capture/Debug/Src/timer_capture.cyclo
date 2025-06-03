@@ -1,2 +1,2 @@
-../Src/timer_capture.c:11:6:timer_capture_init	1
+../Src/timer_capture.c:11:6:timer_capture_conf	1
 ../Src/timer_capture.c:31:6:timer_capture_start	1
