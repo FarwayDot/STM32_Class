@@ -19,8 +19,9 @@
 
 
 /* Prototipo de funciones */
-void timer_capture_conf(void);
-void timer_capture_start(void);
+void timer_config(void);
+void timer_input_capture_conf(void);
+void timer_input_capture_start(void);
 
 
 #endif /* TIMER_CAPTURE_H_ */

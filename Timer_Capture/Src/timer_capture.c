@@ -8,8 +8,28 @@
 
 #include "timer_capture.h"
 
-void timer_capture_conf(void)
+void timer_config(void)
 {
+	/*Pin Config TIM2_CH3 PA2*/
+	RCC -> AHB1ENR |= RCC_AHB1ENR_GPIOAEN; //RCC
+
+	GPIOA -> MODER &= ~GPIO_MODER_MODE5_0; //Modo AF
+	GPIOA -> MODER |= GPIO_MODER_MODE5_1;
+
+	GPIOA -> OSPEEDR
+
+	GPIOA -> AFR[0] &= ~GPIO_AFRL_AFRL2; //Configurar AF
+	GPIOA -> AFR[0] |= GPIO_AFRL_AFRL2_0;
+
+
+
+	/*APB1 TIM2*/
+	RCC -> APB1ENR |= RCC_APB1ENR_TIM2EN;
+}
+
+void timer_input_capture_conf(void)
+{
+
 	/*Enlazar registro CCR a TI1*/
 	TIM2 -> CCMR1 &= ~TIM_CCMR1_CC1S_Msk;
 	TIM2 -> CCMR1 |= (0b01<<TIM_CCMR1_CC1S_Pos);
@@ -28,7 +48,7 @@ void timer_capture_conf(void)
 	return;
 }
 
-void timer_capture_start(void)
+void timer_input_capture_start(void)
 {
 	/*Habilitar interrupción*/
 	TIM2 -> DIER |= (1<<TIM_DIER_CC1IE_Pos);
