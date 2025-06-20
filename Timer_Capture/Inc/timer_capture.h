@@ -19,9 +19,11 @@
 
 
 /* Prototipo de funciones */
-void timer_config(void);
-void timer_input_capture_conf(void);
-void timer_input_capture_start(void);
-
+void timer2_count_config(void);
+void timer2_count_start(void);
+void timer2_ch3_gpio_config(void);
+void timer2_ch3_input_capture_config(void);
+void timer2_ch3_input_capture_start(void);
+void timer_input_calculation(void);
 
 #endif /* TIMER_CAPTURE_H_ */

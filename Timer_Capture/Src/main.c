@@ -44,10 +44,9 @@ int main(void)
 	#else
 		Delay_Init(SystemCoreClock/1000);
 	#endif
-*/
+	*/
 
-	timer_capture_conf(); //Configuramos timer como captura
-	timer_capture_start(); //Inicializamos timer
+
 	GPIO_Output_Config(GPIOA, 5, PUPDR_NONE, OSPEEDR_HIGH, OTYPER_PP);
 
 	while(1)
