@@ -24,18 +24,31 @@
 #include "stm32f4xx.h"
 #include "timer_capture.h"
 
+
+/*Definiciones*/
+#define TIM2_CH3_POLARITY	1
+//#define BITBAND_ACCESS(a, b)  *(volatile uint32_t*)(((uint32_t)&a & 0xF0000000) + 0x2000000 + (((uint32_t)&a & 0x000FFFFF) << 5) + (b << 2))
+
+/**
+ * 0x10 * 32 + 4 * 0 ->
+ */
+
+volatile uint32_t *flag;
+
+volatile uint32_t *ptr;
 /* Tipos, estructuras y enumeraciones */
 
 
 /* Variables globales */
-
+volatile float frequency = 0.0f;
 
 /* Prototipo de funciones */
-
+float frequency_calculator(void);
 
 /* Función principal */
 int main(void)
 {
+
 	flash_config();
 	/*
 	PLL_Config(HSI_SOURCE);
@@ -46,15 +59,60 @@ int main(void)
 	#endif
 	*/
 
+	//flag = (volatile uint32_t *)(PERIPH_BB_BASE + 0x8200);
+	//ptr = &TIM3->SR;
+	//*flag = 0;
 
+
+	timer2_ch3_gpio_config();
+	timer2_count_config();
+	timer2_ch3_input_capture_config();
+
+	timer2_count_start();
+	timer2_ch3_input_capture_start();
+
+	timer3_count_config();
 	GPIO_Output_Config(GPIOA, 5, PUPDR_NONE, OSPEEDR_HIGH, OTYPER_PP);
 
 	while(1)
 	{
-		GPIO_Write_Toggle(GPIOA, 5);
-
+		frequency = frequency_calculator();
 	}
 }
 
 /* Definición de funciones */
+float frequency_calculator(void)
+{
+	uint32_t CNT[2];
+	uint32_t Capture;
+	uint32_t TIM_CLK = SystemCoreClock;
+	uint32_t TIM2_CH3_IC3PSC = 1<<((TIM2 -> CCMR2 & (TIM_CCMR2_IC3PSC))>> TIM_CCMR2_IC3PSC_Pos);
+	float freq = 0.0;
 
+	TIM2 -> SR &= ~(TIM_SR_CC3IF);
+	while(!(TIM2 -> SR & (TIM_SR_CC3IF))); //Se espera a que detecte
+	TIM2 -> SR &= ~(TIM_SR_CC3IF);
+	CNT[0] = TIM2 -> CCR3; //Se lee y limpia la bandera
+	TIM2 -> SR &= ~(TIM_SR_CC3IF);
+	while(!(TIM2 -> SR & (TIM_SR_CC3IF)));  //Se espera a que detecte
+	TIM2 -> SR &= ~(TIM_SR_CC3IF);
+	CNT[1] = TIM2 -> CCR3; //Se lee y limpia la bandera
+
+	if(CNT[1]>=CNT[0])
+	{
+		Capture = CNT[1] - CNT[0];
+	}
+	else
+	{
+		Capture = TIM5->ARR - CNT[0] + CNT[1]  ;
+	}
+
+	freq = (float)(TIM_CLK/((TIM2 -> PSC + 1)*TIM2_CH3_POLARITY)/Capture) * TIM2_CH3_IC3PSC;
+
+	return freq;
+}
+
+void GPIO_Toggle(void)
+{
+	GPIO_Write_Toggle(GPIOA, 5);
+}

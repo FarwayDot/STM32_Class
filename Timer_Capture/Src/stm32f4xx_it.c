@@ -34,7 +34,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
-extern void GPIO_EXTI_Callback(uint8_t pin);
+extern void GPIO_Toggle(void);
 
 /* Private user code ---------------------------------------------------------*/
 
@@ -142,16 +142,19 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /*Private functions*/
-void TIM4_IRQHandler(void)
+void TIM3_IRQHandler(void)
 {
-	if(TIM4->SR & TIM_SR_UIF)
+	uint32_t status = TIM3->SR;
+
+	if (status & TIM_SR_UIF)
 	{
-		TIM4->SR &= ~TIM_SR_UIF;
-		uwTick_tim4++;
+		TIM3->SR = 0;
+		GPIO_Toggle(); // Acción de 1 ms
 	}
 	return;
 }
 
+/*
 void TIM2_IRQHandler(void)
 {
 	if(TIM2->SR & TIM_SR_CC1IF)
@@ -159,6 +162,6 @@ void TIM2_IRQHandler(void)
 		TIM4->SR &= ~TIM_SR_CC1IF;
 	}
 }
-
+*/
 
 

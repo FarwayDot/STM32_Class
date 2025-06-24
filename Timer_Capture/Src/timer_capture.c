@@ -8,6 +8,33 @@
 
 #include "timer_capture.h"
 
+void timer3_count_config(void)
+{
+	/*Activamos RCC del TIM3*/
+	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+	TIM3->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E);
+	TIM3->CR1 &= ~(1<<TIM_CR1_CEN_Pos); //Deshabilitamos conteo
+	/*Calculo del prescaler*/
+	TIM3->PSC = 160-1;
+	/*Calculo del auto-reload*/
+	TIM3->ARR = 50 -1; //Obtenemos 1ms o 1kHz
+	/*Habilitamos interrupción*/
+	TIM3->SR &= ~TIM_SR_UIF; //Apagamos bandera
+	TIM3->DIER &= ~TIM_DIER_UIE_Msk;
+	TIM3->DIER |= (1<<TIM_DIER_UIE_Pos);
+	NVIC_EnableIRQ(TIM3_IRQn);
+	/*Activamos conteo*/
+	TIM3->CR1 |= (1<<TIM_CR1_CEN_Pos);
+	return;
+}
+
+void timer3_ch1_gpio_config(void)
+{
+	//PB4
+
+	return;
+}
+
 /*
  * @brief Timer2 configuration as counter
  *
@@ -15,14 +42,13 @@
 
 void timer2_count_config(void)
 {
-	/*Activamos RCC del TIM4*/
+	/*Activamos RCC del TIM2*/
 	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-	TIM2->CR1 &= ~TIM_CR1_CEN; //Deshabilitamos
+	TIM2->CR1 &= ~TIM_CR1_CEN; //Deshabilitamos conteo
 	/*Calculo del prescaler*/
-	TIM2->PSC = 1599 - 1;
+	TIM2->PSC = 16-1;
 	/*Calculo del auto-reload*/
-	TIM2->ARR = 10 - 1; //Obtenemos 1ms
-
+	TIM2->ARR = 10-1; //Obtenemos 100kHz
 	return;
 }
 
@@ -35,8 +61,7 @@ void timer2_count_config(void)
 void timer2_count_start(void)
 {
 	/*Habilitar conteo */
-	TIM2 -> CR1 &= (0b1<<TIM_CR1_CEN_Pos); //TIM2 conteo EN
-
+	TIM2 -> CR1 |= (0b1<<TIM_CR1_CEN_Pos); //TIM2 conteo EN
 	return;
 }
 
@@ -51,18 +76,16 @@ void timer2_ch3_gpio_config(void)
 	/*Pin Config TIM2_CH3 PA2*/
 	RCC -> AHB1ENR |= RCC_AHB1ENR_GPIOAEN; //RCC
 
-	GPIOA -> MODER &= ~GPIO_MODER_MOD2_0; //Modo AF
+	GPIOA -> MODER &= ~GPIO_MODER_MODE2_0; //Modo AF
 	GPIOA -> MODER |= GPIO_MODER_MODE2_1;
 
 	GPIOA -> OSPEEDR |= GPIO_OSPEEDR_OSPEED2; //Very High Speed
 
 	GPIOA -> PUPDR &= ~GPIO_PUPDR_PUPD2_Msk; //No pull up/down
 
-	GPIOA -> AFR[0] &= ~GPIO_AFRL_AFRL2; //Configurar AF
-	GPIOA -> AFR[0] |= GPIO_AFRL_AFRL2_0;
-	
-	/*APB1 TIM2*/
-	RCC -> APB1ENR |= RCC_APB1ENR_TIM2EN;
+	GPIOA -> AFR[0] &= ~GPIO_AFRL_AFRL2; 	//Limpiar
+	GPIOA -> AFR[0] |= GPIO_AFRL_AFRL2_0;	//Configurar AF1
+	return;
 }
 
 
@@ -74,8 +97,9 @@ void timer2_ch3_gpio_config(void)
 
 void timer2_ch3_input_capture_config(void)
 {
-
-	/*Enlazar registro CCR a TI1*/
+	/*Deshabilitar captura antes de configurar*/
+	TIM2 -> CCER &= ~TIM_CCER_CC3E_Msk;
+	/*Enlazar registro CCR a TI3*/
 	TIM2 -> CCMR2 &= ~TIM_CCMR2_CC3S_Msk;
 	TIM2 -> CCMR2 |= (0b01<<TIM_CCMR2_CC3S_Pos); //Enlazado al TI3
 	/*Programar filtro*/
@@ -86,8 +110,7 @@ void timer2_ch3_input_capture_config(void)
 	/*Prescaler*/
 	TIM2 -> CCMR2 &= ~TIM_CCMR2_IC3PSC_Msk; //No prescaler
 	/*Deshabilitar interrupción*/
-	TIM2 -> DIER &= ~TIM_DIER_CC1IE_Msk;
-
+	TIM2 -> DIER &= ~TIM_DIER_CC3IE_Msk;
 	return;
 }
 
@@ -102,13 +125,8 @@ void timer2_ch3_input_capture_start(void)
 	/*Habilitar interrupción*/
 	//TIM2 -> DIER |= (1<<TIM_DIER_CC1IE_Pos);
 	/*Habilitar captura*/
-	TIM2 -> CCER &= ~TIM_CCER_CC3E_Msk;
-	TIM2 -> CCER |= (0b1<<TIM_CCER_CC3E_Pos); // TIM2_CH3 captura EN
+	TIM2 -> CCER |= (1<<TIM_CCER_CC3E_Pos); // TIM2_CH3 captura EN
 
 	return;
 }
 
-void timer_input_calculation(void)
-{
-
-}

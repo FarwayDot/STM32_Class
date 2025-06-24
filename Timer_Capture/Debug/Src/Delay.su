@@ -1,4 +1,2 @@
-D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1814:22:__NVIC_SetPriority	16	static
-../Src/Delay.c:12:17:GetTick	4	static
-../Src/Delay.c:18:6:Delay_Init	16	static
-../Src/Delay.c:41:6:delay_ms	24	static
+../Src/Delay.c:18:6:Delay_Init	0	static
+../Src/Delay.c:41:6:delay_ms	0	static

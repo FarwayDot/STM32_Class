@@ -1,4 +1,3 @@
-D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	2
 ../Src/delay_timer.c:18:17:GetTick	1
 ../Src/delay_timer.c:27:6:delay_tim4_init	1
 ../Src/delay_timer.c:51:6:delay_ms_tim4	2
