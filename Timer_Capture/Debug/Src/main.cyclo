@@ -1,3 +1,2 @@
-../Src/main.c:84:7:frequency_calculator	4
-../Src/main.c:49:5:main	1
-../Src/main.c:115:6:GPIO_Toggle	1
+../Src/main.c:131:6:GPIO_Toggle	1
+../Src/main.c:50:5:main	2

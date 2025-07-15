@@ -26,24 +26,25 @@
 
 
 /*Definiciones*/
-#define TIM2_CH3_POLARITY	1
+
 //#define BITBAND_ACCESS(a, b)  *(volatile uint32_t*)(((uint32_t)&a & 0xF0000000) + 0x2000000 + (((uint32_t)&a & 0x000FFFFF) << 5) + (b << 2))
+
 
 /**
  * 0x10 * 32 + 4 * 0 ->
  */
 
 volatile uint32_t *flag;
-
 volatile uint32_t *ptr;
 /* Tipos, estructuras y enumeraciones */
 
 
 /* Variables globales */
-volatile float frequency = 0.0f;
+
 
 /* Prototipo de funciones */
-float frequency_calculator(void);
+//float frequency_calculator(void);
+void GPIO_Toggle(void);
 
 /* Función principal */
 int main(void)
@@ -63,30 +64,37 @@ int main(void)
 	//ptr = &TIM3->SR;
 	//*flag = 0;
 
+	/*Input Capture*/
+	timer2_ch3_gpio_config(); //Configuramos tim2_ch3 como entrada
+	timer2_count_config(); //Configuramos tim2 counter
+	timer2_ch3_input_capture_config(); //Configuramos tim2 input capture
 
-	timer2_ch3_gpio_config();
-	timer2_count_config();
-	timer2_ch3_input_capture_config();
+	timer2_count_start(); //Comenzamos la cuenta en tim2
+	timer2_ch3_input_capture_start(); // Comenzamos la medición de captura tim2
 
-	timer2_count_start();
-	timer2_ch3_input_capture_start();
-
-	timer3_count_config();
+	/*Output PWM*/
+	timer3_count_config(); //Configuramos tim3 como contador
 	GPIO_Output_Config(GPIOA, 5, PUPDR_NONE, OSPEEDR_HIGH, OTYPER_PP);
 
 	while(1)
 	{
-		frequency = frequency_calculator();
+
+		if (TIM3->SR & TIM_SR_UIF)
+		{
+			TIM3->SR = 0;
+			GPIO_Toggle(); // Acción de 1 ms
+		}
 	}
 }
 
 /* Definición de funciones */
+/*
 float frequency_calculator(void)
 {
 	uint32_t CNT[2];
 	uint32_t Capture;
 	uint32_t TIM_CLK = SystemCoreClock;
-	uint32_t TIM2_CH3_IC3PSC = 1<<((TIM2 -> CCMR2 & (TIM_CCMR2_IC3PSC))>> TIM_CCMR2_IC3PSC_Pos);
+	//uint32_t TIM2_CH3_IC3PSC = 1<<((TIM2 -> CCMR2 & (TIM_CCMR2_IC3PSC))>> TIM_CCMR2_IC3PSC_Pos);
 	float freq = 0.0;
 
 	TIM2 -> SR &= ~(TIM_SR_CC3IF);
@@ -107,12 +115,22 @@ float frequency_calculator(void)
 		Capture = TIM5->ARR - CNT[0] + CNT[1]  ;
 	}
 
-	freq = (float)(TIM_CLK/((TIM2 -> PSC + 1)*TIM2_CH3_POLARITY)/Capture) * TIM2_CH3_IC3PSC;
+	if(Capture <= 0)
+	{
+		freq = 0.0;
+	}
+	else
+	{
+		freq = (float)(TIM_CLK/((TIM2->PSC + 1)*TIM2_CH3_POLARITY)/Capture) * TIM2_CH3_IC3PSC;
+	}
 
 	return freq;
 }
+*/
 
 void GPIO_Toggle(void)
 {
 	GPIO_Write_Toggle(GPIOA, 5);
 }
+
+

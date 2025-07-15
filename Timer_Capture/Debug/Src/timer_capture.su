@@ -1,7 +1,7 @@
-../Src/timer_capture.c:11:6:timer3_count_config	0	static,ignoring_inline_asm
+../Src/timer_capture.c:11:6:timer3_count_config	0	static
 ../Src/timer_capture.c:31:6:timer3_ch1_gpio_config	0	static
 ../Src/timer_capture.c:43:6:timer2_count_config	0	static
 ../Src/timer_capture.c:61:6:timer2_count_start	0	static
 ../Src/timer_capture.c:74:6:timer2_ch3_gpio_config	0	static
 ../Src/timer_capture.c:98:6:timer2_ch3_input_capture_config	0	static
-../Src/timer_capture.c:123:6:timer2_ch3_input_capture_start	0	static
+../Src/timer_capture.c:123:6:timer2_ch3_input_capture_start	0	static,ignoring_inline_asm

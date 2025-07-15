@@ -27,14 +27,21 @@
 
 
 /* Private define ------------------------------------------------------------*/
-
+#define TIM2_CH3_POLARITY	1
+#define TIM2_CH3_IC3PSC		1
 
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
 
+uint32_t CNT[2];
+uint32_t Capture;
+uint8_t Is_First_Capture = 0;
+
 /* Private function prototypes -----------------------------------------------*/
-extern void GPIO_Toggle(void);
+/*extern void GPIO_Toggle(void);*/
+void frequency_calculator(void);
+float frequency = 0.0;
 
 /* Private user code ---------------------------------------------------------*/
 
@@ -142,6 +149,7 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /*Private functions*/
+/*
 void TIM3_IRQHandler(void)
 {
 	uint32_t status = TIM3->SR;
@@ -152,16 +160,46 @@ void TIM3_IRQHandler(void)
 		GPIO_Toggle(); // Acción de 1 ms
 	}
 	return;
-}
+}*/
 
-/*
+
 void TIM2_IRQHandler(void)
 {
-	if(TIM2->SR & TIM_SR_CC1IF)
+	if(TIM2->SR & TIM_SR_CC3IF)
 	{
-		TIM4->SR &= ~TIM_SR_CC1IF;
+		TIM2->SR &= ~TIM_SR_CC3IF;
+		frequency_calculator();
 	}
 }
-*/
+
+void frequency_calculator(void)
+{
+	uint32_t TIM_CLK = SystemCoreClock;
+
+	if(Is_First_Capture == 0) //Si es la primera captura
+	{
+		CNT[0] = TIM2 -> CCR3;
+		Is_First_Capture = 1;
+	}
+	else //Si ya se capturó una vez
+	{
+		CNT[1] = TIM2 -> CCR3;
+
+		if(CNT[1]>=CNT[0])
+		{
+			Capture = CNT[1] - CNT[0];
+		}
+		else
+		{
+			Capture = TIM2->ARR - CNT[0] + CNT[1]  ;
+		}
+
+		frequency = (float)(TIM_CLK/((TIM2->PSC + 1)*TIM2_CH3_POLARITY)/Capture) * TIM2_CH3_IC3PSC;
+		//freq = (float)(TIM_CLK/((TIM2->PSC + 1))/Capture);
+		TIM2 -> CNT = 0;
+		Is_First_Capture = 0;
+	}
+}
+
 
 
