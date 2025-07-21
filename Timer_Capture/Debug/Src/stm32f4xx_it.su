@@ -7,5 +7,4 @@
 ../Src/stm32f4xx_it.c:123:6:DebugMon_Handler	0	static
 ../Src/stm32f4xx_it.c:131:6:PendSV_Handler	0	static
 ../Src/stm32f4xx_it.c:139:6:SysTick_Handler	0	static
-../Src/stm32f4xx_it.c:175:6:frequency_calculator	0	static
-../Src/stm32f4xx_it.c:166:6:TIM2_IRQHandler	8	static
+../Src/stm32f4xx_it.c:153:6:TIM2_IRQHandler	8	static

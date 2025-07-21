@@ -43,8 +43,7 @@ volatile uint32_t *ptr;
 
 
 /* Prototipo de funciones */
-//float frequency_calculator(void);
-void GPIO_Toggle(void);
+
 
 /* Función principal */
 int main(void)
@@ -74,7 +73,12 @@ int main(void)
 
 	/*Output PWM*/
 	timer3_count_config(); //Configuramos tim3 como contador
-	GPIO_Output_Config(GPIOA, 5, PUPDR_NONE, OSPEEDR_HIGH, OTYPER_PP);
+
+	//Señal de PWM
+	GPIO_Output_Config(GPIOA, 5, PUPDR_NONE, OSPEEDR_MEDIUM, OTYPER_PP);
+
+	//Señal de sincronización
+	GPIO_Output_Config(GPIOA, 7, PUPDR_NONE, OSPEEDR_MEDIUM, OTYPER_PP);
 
 	while(1)
 	{
@@ -82,55 +86,12 @@ int main(void)
 		if (TIM3->SR & TIM_SR_UIF)
 		{
 			TIM3->SR = 0;
-			GPIO_Toggle(); // Acción de 1 ms
+			GPIO_Write_Toggle(GPIOA, 7);
 		}
 	}
 }
 
 /* Definición de funciones */
-/*
-float frequency_calculator(void)
-{
-	uint32_t CNT[2];
-	uint32_t Capture;
-	uint32_t TIM_CLK = SystemCoreClock;
-	//uint32_t TIM2_CH3_IC3PSC = 1<<((TIM2 -> CCMR2 & (TIM_CCMR2_IC3PSC))>> TIM_CCMR2_IC3PSC_Pos);
-	float freq = 0.0;
 
-	TIM2 -> SR &= ~(TIM_SR_CC3IF);
-	while(!(TIM2 -> SR & (TIM_SR_CC3IF))); //Se espera a que detecte
-	TIM2 -> SR &= ~(TIM_SR_CC3IF);
-	CNT[0] = TIM2 -> CCR3; //Se lee y limpia la bandera
-	TIM2 -> SR &= ~(TIM_SR_CC3IF);
-	while(!(TIM2 -> SR & (TIM_SR_CC3IF)));  //Se espera a que detecte
-	TIM2 -> SR &= ~(TIM_SR_CC3IF);
-	CNT[1] = TIM2 -> CCR3; //Se lee y limpia la bandera
-
-	if(CNT[1]>=CNT[0])
-	{
-		Capture = CNT[1] - CNT[0];
-	}
-	else
-	{
-		Capture = TIM5->ARR - CNT[0] + CNT[1]  ;
-	}
-
-	if(Capture <= 0)
-	{
-		freq = 0.0;
-	}
-	else
-	{
-		freq = (float)(TIM_CLK/((TIM2->PSC + 1)*TIM2_CH3_POLARITY)/Capture) * TIM2_CH3_IC3PSC;
-	}
-
-	return freq;
-}
-*/
-
-void GPIO_Toggle(void)
-{
-	GPIO_Write_Toggle(GPIOA, 5);
-}
 
 

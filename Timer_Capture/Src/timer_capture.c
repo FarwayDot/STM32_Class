@@ -60,8 +60,9 @@ void timer2_count_config(void)
 
 void timer2_count_start(void)
 {
+	TIM2->CNT = 0;
 	/*Habilitar conteo */
-	TIM2 -> CR1 |= (0b1<<TIM_CR1_CEN_Pos); //TIM2 conteo EN
+	TIM2 -> CR1 |= TIM_CR1_CEN; //TIM2 conteo EN
 	return;
 }
 
@@ -79,7 +80,7 @@ void timer2_ch3_gpio_config(void)
 	GPIOA -> MODER &= ~GPIO_MODER_MODE2_0; //Modo AF
 	GPIOA -> MODER |= GPIO_MODER_MODE2_1;
 	/*VHS*/
-	GPIOA -> OSPEEDR |= GPIO_OSPEEDR_OSPEED2; //Very High Speed
+	//GPIOA -> OSPEEDR |= GPIO_OSPEEDR_OSPEED2; //Very High Speed
 	/*Pull up down*/
 	GPIOA -> PUPDR &= ~GPIO_PUPDR_PUPD2_Msk; //No pull up/down
 	/*Alternative*/
@@ -106,9 +107,9 @@ void timer2_ch3_input_capture_config(void)
 	TIM2 -> CCMR2 |= (0b01<<TIM_CCMR2_CC3S_Pos); //Enlazado al TI3
 	/*Programar filtro*/
 	TIM2 -> CCMR2 &= ~TIM_CCMR2_IC3F_Msk; //Limpiamos
-	TIM2 -> CCMR2 |= (0b0011<<TIM_CCMR2_IC3F_Pos); //Sampling 8
+	//TIM2 -> CCMR2 |= (0b0011<<TIM_CCMR2_IC3F_Pos); //Sampling 8
 	/*Flanco de detección*/
-	TIM2 -> CCER  &= ~(TIM_CCER_CC3P_Msk | TIM_CCER_CC3NP_Msk); //rising edge
+	TIM2 -> CCER  &= ~(TIM_CCER_CC3P | TIM_CCER_CC3NP); //rising edge
 	/*Prescaler*/
 	TIM2 -> CCMR2 &= ~TIM_CCMR2_IC3PSC_Msk; //No prescaler
 	return;

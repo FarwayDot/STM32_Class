@@ -21,7 +21,7 @@
 #include "stm32f4xx_it.h"
 
 /* Private includes ----------------------------------------------------------*/
-
+#include "GPIO_Config.h"
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -29,22 +29,22 @@
 /* Private define ------------------------------------------------------------*/
 #define TIM2_CH3_POLARITY	1
 #define TIM2_CH3_IC3PSC		1
+#define TIM_CLK				16000000U
 
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
 
-uint32_t CNT[2];
-uint32_t Capture;
-uint8_t Is_First_Capture = 0;
-
-/* Private function prototypes -----------------------------------------------*/
-/*extern void GPIO_Toggle(void);*/
-void frequency_calculator(void);
+//uint32_t CNT[2];
+uint32_t IC_Val1 = 0;
+uint32_t IC_Val2 = 0;
+uint32_t Difference = 0;
+uint8_t Is_First_Captured = 0;
 float frequency = 0.0;
 
-/* Private user code ---------------------------------------------------------*/
+/* Private function prototypes -----------------------------------------------*/
 
+/* Private user code ---------------------------------------------------------*/
 
 /* External variables --------------------------------------------------------*/
 
@@ -149,55 +149,38 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /*Private functions*/
-/*
-void TIM3_IRQHandler(void)
-{
-	uint32_t status = TIM3->SR;
-
-	if (status & TIM_SR_UIF)
-	{
-		TIM3->SR = 0;
-		GPIO_Toggle(); // Acción de 1 ms
-	}
-	return;
-}*/
-
 
 void TIM2_IRQHandler(void)
 {
 	if(TIM2->SR & TIM_SR_CC3IF)
 	{
 		TIM2->SR &= ~TIM_SR_CC3IF;
-		frequency_calculator();
-	}
-}
 
-void frequency_calculator(void)
-{
-	uint32_t TIM_CLK = SystemCoreClock;
-
-	if(Is_First_Capture == 0) //Si es la primera captura
-	{
-		CNT[0] = TIM2 -> CCR3;
-		Is_First_Capture = 1;
-	}
-	else //Si ya se capturó una vez
-	{
-		CNT[1] = TIM2 -> CCR3;
-
-		if(CNT[1]>=CNT[0])
+		if(Is_First_Captured == 0) //Si es la primera captura
 		{
-			Capture = CNT[1] - CNT[0];
+			GPIO_Write_Toggle(GPIOA, GPIO_PIN_SET);
+			IC_Val1 = TIM2 -> CCR3;
+			Is_First_Captured = 1;
 		}
-		else
+		else //Si ya se capturó una vez
 		{
-			Capture = TIM2->ARR - CNT[0] + CNT[1]  ;
-		}
+			GPIO_Write_Toggle(GPIOA, GPIO_PIN_RESET);
+			IC_Val2 = TIM2 -> CCR3;
 
-		frequency = (float)(TIM_CLK/((TIM2->PSC + 1)*TIM2_CH3_POLARITY)/Capture) * TIM2_CH3_IC3PSC;
-		//freq = (float)(TIM_CLK/((TIM2->PSC + 1))/Capture);
-		TIM2 -> CNT = 0;
-		Is_First_Capture = 0;
+			if(IC_Val2 > IC_Val1)
+			{
+				Difference = IC_Val2 - IC_Val1;
+			}
+			else
+			{
+				Difference = (TIM2->ARR - IC_Val1) + IC_Val2;
+			}
+
+			frequency = (float)(TIM_CLK/((TIM2->PSC + 1)*TIM2_CH3_POLARITY)/Difference) * TIM2_CH3_IC3PSC;
+			//freq = (float)(TIM_CLK/((TIM2->PSC + 1))/Capture);
+			TIM2 -> CNT = 0;
+			Is_First_Captured = 0;
+		}
 	}
 }
 
