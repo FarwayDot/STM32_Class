@@ -27,9 +27,11 @@
 
 
 /* Private define ------------------------------------------------------------*/
-#define TIM2_CH3_POLARITY	1
-#define TIM2_CH3_IC3PSC		1
+#define TIM2_CH3_POLARITY	1 //Si se escoje solo un flanco o los dos
+#define TIM2_CH3_IC3PSC		1 //Si se escoje un prescalesr adicional en TIMx -> IC3PSC
 #define TIM_CLK				16000000U
+
+//#define PRUEBA
 
 /* Private macro -------------------------------------------------------------*/
 
@@ -152,19 +154,28 @@ void SysTick_Handler(void)
 
 void TIM2_IRQHandler(void)
 {
+#ifdef PRUEBA
+	if(TIM2->SR & TIM_SR_UIF)
+	{
+		TIM2->SR &= ~TIM_SR_UIF;
+		GPIO_Write_Toggle(GPIOA, 5);
+	}
+
+
+#else
 	if(TIM2->SR & TIM_SR_CC3IF)
 	{
 		TIM2->SR &= ~TIM_SR_CC3IF;
 
 		if(Is_First_Captured == 0) //Si es la primera captura
 		{
-			GPIO_Write_Toggle(GPIOA, GPIO_PIN_SET);
+			GPIO_Write(GPIOA, 5, GPIO_PIN_SET);
 			IC_Val1 = TIM2 -> CCR3;
 			Is_First_Captured = 1;
 		}
 		else //Si ya se capturó una vez
 		{
-			GPIO_Write_Toggle(GPIOA, GPIO_PIN_RESET);
+			GPIO_Write(GPIOA, 5, GPIO_PIN_RESET);
 			IC_Val2 = TIM2 -> CCR3;
 
 			if(IC_Val2 > IC_Val1)
@@ -173,15 +184,20 @@ void TIM2_IRQHandler(void)
 			}
 			else
 			{
-				Difference = (TIM2->ARR - IC_Val1) + IC_Val2;
+				Difference = (TIM2->ARR  - IC_Val1) + IC_Val2;
 			}
 
-			frequency = (float)(TIM_CLK/((TIM2->PSC + 1)*TIM2_CH3_POLARITY)/Difference) * TIM2_CH3_IC3PSC;
-			//freq = (float)(TIM_CLK/((TIM2->PSC + 1))/Capture);
+			//frequency = (float)(TIM_CLK/((TIM2->PSC + 1)*TIM2_CH3_POLARITY)/Difference) * TIM2_CH3_IC3PSC;
+			//frequency = 1000000.0f/Difference;
+			frequency = (float)(TIM_CLK/((0 + 1)*TIM2_CH3_POLARITY)/Difference) * TIM2_CH3_IC3PSC;
 			TIM2 -> CNT = 0;
 			Is_First_Captured = 0;
 		}
 	}
+#endif
+
+
+
 }
 
 

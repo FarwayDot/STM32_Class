@@ -50,29 +50,32 @@ int main(void)
 {
 
 	flash_config();
-	/*
-	PLL_Config(HSI_SOURCE);
-	#if USE_DELAY_US == 1
-		Delay_Init(SystemCoreClock/1000000);
-	#else
-		Delay_Init(SystemCoreClock/1000);
-	#endif
-	*/
+
+	RCC -> CR &= ~RCC_CR_HSION_Msk;
+	RCC -> CR |= RCC_CR_HSION;
+	while(!(RCC->CR & RCC_CR_HSIRDY));
+
+	RCC -> CFGR &= ~RCC_CFGR_SW_Msk;
+
+	RCC -> CFGR &= ~RCC_CFGR_HPRE_Msk;
+	RCC -> CFGR &= ~RCC_CFGR_PPRE1_Msk;
+	RCC -> CFGR &= ~RCC_CFGR_PPRE2_Msk;
 
 	//flag = (volatile uint32_t *)(PERIPH_BB_BASE + 0x8200);
 	//ptr = &TIM3->SR;
 	//*flag = 0;
 
-	/*Input Capture*/
-	timer2_ch3_gpio_config(); //Configuramos tim2_ch3 como entrada
-	timer2_count_config(); //Configuramos tim2 counter
-	timer2_ch3_input_capture_config(); //Configuramos tim2 input capture
+	//Configuración input capture
+	timer2_ch3_input_capture_config(15, 0xFFFFFFFF);
+	//timer2_count_config(15, 999);
 
-	timer2_count_start(); //Comenzamos la cuenta en tim2
-	timer2_ch3_input_capture_start(); // Comenzamos la medición de captura tim2
+	//Configuración timer 3
+	timer3_count_config();
 
-	/*Output PWM*/
-	timer3_count_config(); //Configuramos tim3 como contador
+	//Habilitamos conteo
+	timer2_ch3_input_capture_start(ISR_ON);
+	//timer2_count_start_IT();
+	timer3_count_start();
 
 	//Señal de PWM
 	GPIO_Output_Config(GPIOA, 5, PUPDR_NONE, OSPEEDR_MEDIUM, OTYPER_PP);
@@ -82,16 +85,15 @@ int main(void)
 
 	while(1)
 	{
-
 		if (TIM3->SR & TIM_SR_UIF)
 		{
-			TIM3->SR = 0;
+			TIM3->SR &= ~TIM_SR_UIF;
 			GPIO_Write_Toggle(GPIOA, 7);
 		}
+
 	}
 }
 
 /* Definición de funciones */
-
 
 
