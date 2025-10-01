@@ -27,11 +27,11 @@
 
 
 /* Private define ------------------------------------------------------------*/
-#define TIM2_CH3_POLARITY	1 //Si se escoje solo un flanco o los dos
+#define TIM2_CH3_POLARITY	2 //Si se escoje solo un flanco o los dos
 #define TIM2_CH3_IC3PSC		1 //Si se escoje un prescalesr adicional en TIMx -> IC3PSC
 #define TIM_CLK				16000000U
 
-//#define PRUEBA
+//#define PRUEBA_TIMER_COUNT
 
 /* Private macro -------------------------------------------------------------*/
 
@@ -45,7 +45,7 @@ uint8_t Is_First_Captured = 0;
 float frequency = 0.0;
 
 /* Private function prototypes -----------------------------------------------*/
-
+extern void LED_Toggle_IT(void);
 /* Private user code ---------------------------------------------------------*/
 
 /* External variables --------------------------------------------------------*/
@@ -154,13 +154,10 @@ void SysTick_Handler(void)
 
 void TIM2_IRQHandler(void)
 {
-#ifdef PRUEBA
-	if(TIM2->SR & TIM_SR_UIF)
-	{
-		TIM2->SR &= ~TIM_SR_UIF;
-		GPIO_Write_Toggle(GPIOA, 5);
-	}
+	//uint16_t tim2_IC_ic3psc = 1<<((TIM2->CCMR2 & TIM_CCMR2_IC3PSC_Msk) >> TIM_CCMR2_IC3PSC_Pos);
+#ifdef PRUEBA_TIMER_COUNT
 
+	LED_Toggle_IT();
 
 #else
 	if(TIM2->SR & TIM_SR_CC3IF)
@@ -187,9 +184,7 @@ void TIM2_IRQHandler(void)
 				Difference = (TIM2->ARR  - IC_Val1) + IC_Val2;
 			}
 
-			//frequency = (float)(TIM_CLK/((TIM2->PSC + 1)*TIM2_CH3_POLARITY)/Difference) * TIM2_CH3_IC3PSC;
-			//frequency = 1000000.0f/Difference;
-			frequency = (float)(TIM_CLK/((0 + 1)*TIM2_CH3_POLARITY)/Difference) * TIM2_CH3_IC3PSC;
+			frequency = ((TIM_CLK/(TIM2->PSC + 1))/Difference) * TIM2_CH3_IC3PSC;
 			TIM2 -> CNT = 0;
 			Is_First_Captured = 0;
 		}

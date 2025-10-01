@@ -28,7 +28,10 @@
 /*Definiciones*/
 
 //#define BITBAND_ACCESS(a, b)  *(volatile uint32_t*)(((uint32_t)&a & 0xF0000000) + 0x2000000 + (((uint32_t)&a & 0x000FFFFF) << 5) + (b << 2))
-
+#define LED_PWM_GPIO	GPIOA
+#define LED_PWM_PIN		7
+#define LED_SYNC_GPIO	GPIOA
+#define LED_SYNC_PIN	5
 
 /**
  * 0x10 * 32 + 4 * 0 ->
@@ -61,39 +64,45 @@ int main(void)
 	RCC -> CFGR &= ~RCC_CFGR_PPRE1_Msk;
 	RCC -> CFGR &= ~RCC_CFGR_PPRE2_Msk;
 
+	// Para saber en todo momentos el valor del registro SR
 	//flag = (volatile uint32_t *)(PERIPH_BB_BASE + 0x8200);
 	//ptr = &TIM3->SR;
 	//*flag = 0;
 
 	//Configuración input capture
 	timer2_ch3_input_capture_config(15, 0xFFFFFFFF);
-	//timer2_count_config(15, 999);
 
 	//Configuración timer 3
-	timer3_count_config();
+	timer3_count_config(15, 49);
 
 	//Habilitamos conteo
 	timer2_ch3_input_capture_start(ISR_ON);
-	//timer2_count_start_IT();
 	timer3_count_start();
 
 	//Señal de PWM
-	GPIO_Output_Config(GPIOA, 5, PUPDR_NONE, OSPEEDR_MEDIUM, OTYPER_PP);
+	GPIO_Output_Config(LED_PWM_GPIO, LED_PWM_PIN, PUPDR_NONE, OSPEEDR_MEDIUM, OTYPER_PP);
 
 	//Señal de sincronización
-	GPIO_Output_Config(GPIOA, 7, PUPDR_NONE, OSPEEDR_MEDIUM, OTYPER_PP);
+	GPIO_Output_Config(LED_SYNC_GPIO, LED_SYNC_PIN, PUPDR_NONE, OSPEEDR_MEDIUM, OTYPER_PP);
 
 	while(1)
 	{
 		if (TIM3->SR & TIM_SR_UIF)
 		{
 			TIM3->SR &= ~TIM_SR_UIF;
-			GPIO_Write_Toggle(GPIOA, 7);
+			GPIO_Write_Toggle(LED_PWM_GPIO, LED_PWM_PIN);
 		}
 
 	}
 }
 
 /* Definición de funciones */
-
+void LED_Toggle_IT(void)
+{
+	if(TIM2->SR & TIM_SR_UIF)
+	{
+		TIM2->SR &= ~TIM_SR_UIF;
+		GPIO_Write_Toggle(LED_SYNC_GPIO, LED_SYNC_PIN);
+	}
+}
 

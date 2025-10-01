@@ -8,21 +8,25 @@
 
 #include "timer_capture.h"
 
-void timer3_count_config(void)
+void timer3_count_config(uint16_t psc, uint32_t arr)
 {
 	/*Activamos RCC del TIM3*/
 	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+
+	//Deshabilitamos conteo
+	TIM3->CR1 &= ~TIM_CR1_CEN;
+
+	//Deshabilitamos banderas
 	TIM3->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E);
-	TIM3->CR1 &= ~(1<<TIM_CR1_CEN_Pos); //Deshabilitamos conteo
-	/*Calculo del prescaler*/
-	TIM3->PSC = 16-1;
-	/*Calculo del auto-reload*/
-	TIM3->ARR = 50 -1; //Obtenemos 1ms o 1kHz
-	/*Habilitamos interrupción*/
-	TIM3->SR &= ~TIM_SR_UIF; //Apagamos bandera
-	//TIM3->DIER &= ~TIM_DIER_UIE_Msk;
-	//TIM3->DIER |= (1<<TIM_DIER_UIE_Pos);
-	//NVIC_EnableIRQ(TIM3_IRQn);
+
+	//Calculo del prescaler
+	TIM3->PSC = psc;
+
+	//Calculo del auto-reload
+	TIM3->ARR = arr;
+
+	//Actualizamos valores
+	TIM3 -> EGR |= TIM_EGR_UG;
 
 	return;
 }
@@ -51,7 +55,7 @@ void timer2_count_config(uint16_t psc, uint32_t arr)
 	//Deshabilitamos conteo
 	TIM2->CR1 &= ~TIM_CR1_CEN;
 
-	//Deshabilitamos interrupciónes
+	//Deshabilitamos banderas
 	TIM2->SR &= ~(TIM_SR_UIF || TIM_SR_CC1IF || TIM_SR_CC2IF || TIM_SR_CC3IF || TIM_SR_CC4IF);
 
 	//Calculo del prescaler
@@ -59,6 +63,9 @@ void timer2_count_config(uint16_t psc, uint32_t arr)
 
 	//Calculo del auto-reload
 	TIM2->ARR = arr;
+
+	//Actualizamos valores
+	TIM2 -> EGR |= TIM_EGR_UG;
 
 	return;
 }
@@ -128,9 +135,11 @@ void timer2_ch3_input_capture_config(uint16_t psc, uint32_t arr)
 
 	//Programar filtro
 	TIM2 -> CCMR2 &= ~TIM_CCMR2_IC3F_Msk;
+	TIM2 -> CCMR2 |= (0b0011<<TIM_CCMR2_IC3F_Pos);
 
 	//Prescaler
 	TIM2 -> CCMR2 &= ~TIM_CCMR2_IC3PSC_Msk;
+	TIM2 -> CCMR2 |= (0b00<<TIM_CCMR2_IC3PSC_Pos);
 
 	//Flanco de detección
 	TIM2 -> CCER  &= ~TIM_CCER_CC3P_Msk;

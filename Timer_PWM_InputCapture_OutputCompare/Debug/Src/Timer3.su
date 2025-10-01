@@ -1,0 +1,7 @@
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	16	static,ignoring_inline_asm
+../Src/Timer3.c:13:6:tim3_ch2_pb5_PWM_gpio_config	4	static
+../Src/Timer3.c:31:6:tim3_count_config	16	static
+../Src/Timer3.c:45:6:tim3_count_start	4	static
+../Src/Timer3.c:66:6:tim3_PWM_Config	16	static
+../Src/Timer3.c:167:6:tim3_PWM_Start	16	static
+../Src/Timer3.c:182:6:tim3_PWM_Set	24	static

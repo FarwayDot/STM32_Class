@@ -90,7 +90,8 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 			}
 
 			frequency = (float)((TIMCLOCK/(TIM2->PSC + 1))/Difference);
-			__HAL_TIM_SET_COUNTER(htim, 0);
+			//__HAL_TIM_SET_COUNTER(htim, 0);
+			TIM2 -> CNT = 0;
 			Is_First_Captured = 0;
 		}
 	}

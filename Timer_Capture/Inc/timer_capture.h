@@ -24,7 +24,7 @@ typedef enum
 
 /* Prototipo de funciones */
 
-void timer3_count_config(void);
+void timer3_count_config(uint16_t psc, uint32_t arr);
 void timer3_count_start(void);
 
 void timer2_count_config(uint16_t psc, uint32_t arr);
