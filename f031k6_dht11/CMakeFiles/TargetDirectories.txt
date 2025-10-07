@@ -1,6 +1,0 @@
-C:/Users/User/Documents/STM32/f031k6_dht11/CMakeFiles/f031k6_dht11.dir
-C:/Users/User/Documents/STM32/f031k6_dht11/CMakeFiles/edit_cache.dir
-C:/Users/User/Documents/STM32/f031k6_dht11/CMakeFiles/rebuild_cache.dir
-C:/Users/User/Documents/STM32/f031k6_dht11/cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir
-C:/Users/User/Documents/STM32/f031k6_dht11/cmake/stm32cubemx/CMakeFiles/edit_cache.dir
-C:/Users/User/Documents/STM32/f031k6_dht11/cmake/stm32cubemx/CMakeFiles/rebuild_cache.dir
