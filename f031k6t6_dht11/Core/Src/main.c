@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,7 +61,7 @@ typedef enum
 
 
 uint8_t Data[5] = {0};
-float press = 0.0;
+float humid = 0.0;
 float temp = 0.0;
 
 /* USER CODE END PV */
@@ -122,24 +123,35 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-
+  printf("Inicio de programa\r\n");
   setbuf(stdout, NULL);
-
   TIM1->CR1 |= TIM_CR1_CEN; //Empieza conteo
-  //dht11_start();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if(!dht11_start())
+	  {
+		  printf("Start Error\r\n");
+	  }
+	  else
+	  {
+		  printf("Start Ok\r\n");
+	  }
 
-	  //dht11_read();
-	  //while(!dht11_read());
-	  //dht11_process();
-	  printf("Hola Mundo\n");
-	  HAL_Delay(1100);
-	  //dht11_start();
+	  if(!dht11_read())
+	  {
+		  printf("Conversion Fallida\r\n");
+	  }
+	  else
+	  {
+		  printf("Conversion Completa\r\n");
+		  dht11_process();
+	  }
+
+	  HAL_Delay(1500);
 
     /* USER CODE END WHILE */
 
@@ -255,7 +267,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 38400;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -354,41 +366,8 @@ void user_delay_us(uint32_t delay)
 	return;
 }
 
-//Esperamos en us
-uint8_t wait_for_low(uint32_t wait_time) //Esperamos desde 1
-{
-	uint32_t tickstart =  TIM1->CNT;
-
-	while(DHT_PIN_READ())
-	{
-		if((uint32_t)(TIM1->CNT - tickstart)>=wait_time)
-		{
-			return 0;
-		}
-
-	}
-	return 1;
-}
-
-//Esperamos en us
-uint8_t wait_for_high(uint32_t wait_time)
-{
-	uint32_t tickstart =  TIM1->CNT;
-
-	while(!DHT_PIN_READ())
-	{
-		if((uint32_t)(TIM1->CNT - tickstart)>=wait_time)
-		{
-			return 0;
-		}
-
-	}
-	return 1;
-
-}
-
 /*
- * @brief Función que mide el tiempo en el que cambia el estado del pin a Pin_State
+ * @brief Función que mide el tiempo que toma un pin en un determinado estado
  *
  * uint8_t Pin: Pin de entrada (Por ahora no se escoje el puerto)
  * uint8_t Pin_State: Estado del fin final.
@@ -438,7 +417,7 @@ uint8_t dht11_start(void)
 	GPIOA->ODR |= GPIO_ODR_8; //Write 1
 	user_delay_us(40);
 	PA8_Input_Config();
-	while(DHT_PIN_READ());
+
 
 	if(pulseIn(GPIO_PIN_RESET, 100) == 0) return 0;
 	if(pulseIn(GPIO_PIN_SET, 100) == 0) return 0;
@@ -448,9 +427,9 @@ uint8_t dht11_start(void)
 
 uint8_t dht11_read(void)
 {
-	uint8_t group_data = 0;
-	uint8_t bit_data = 0;
-	//uint32_t start_tick = 0;
+	//uint8_t group_data = 0;
+	//uint8_t bit_data = 0;
+	uint32_t tick_high = 0;
 
 	/*
 	 * Data[0] = int RH data
@@ -459,26 +438,29 @@ uint8_t dht11_read(void)
 	 * Data[3] = dec TEMP data
 	 * Data[4] = checksum
 	 */
-
+/*
 	for(group_data = 0; group_data<=4; group_data++)
 	{
 		for(bit_data = 0; bit_data<=7; bit_data++)
 		{
-			while(!DHT_PIN_READ()); //Esperamos a que cambie de estado a 1V 50us
-
-
-
-			if(wait_for_low(40) && (DHT_PIN_READ()==0)) //Empezamos la espera por nivel de voltaje 0V
+			tick_high = pulseIn(GPIO_PIN_SET, 100);
+			if(tick_high > 40)
 			{
-				//Bit = 0
+				Data[group_data] |= 1<<(7-bit_data);
+			}
+			else
+			{
 				Data[group_data] &= ~(1<<(7-bit_data));
 			}
-			else if(wait_for_low(50) && (DHT_PIN_READ()==0)) //Ya pasaron 30us
-			{
-				//Bit = 1
-				Data[group_data] |= (1<<(8-bit_data));
-			}
+
+
 		}
+	}*/
+	for (uint8_t i = 0; i < 40; i++) {
+		pulseIn(GPIO_PIN_RESET, 100);
+		tick_high = pulseIn(GPIO_PIN_SET, 100); // medir HIGH
+	    Data[i/8] <<= 1;
+	    if (tick_high > 40) Data[i/8] |= 1;
 	}
 
 	if(Data[4] == Data[0] + Data[1] + Data[2] + Data[3])
@@ -494,9 +476,16 @@ uint8_t dht11_read(void)
 
 void dht11_process(void)
 {
-	press = (float)(Data[0]) + (Data[0]/10.0);
-	temp = (float)(Data[0]) + (Data[0]/10.0);
+	humid = (float)(Data[0]) + (Data[1]/10.0);
+	temp = (float)(Data[2]) + (Data[3]/10.0);
 
+	for(uint8_t i=0; i<=40; i++)
+	{
+		Data[i] = 0;
+	}
+
+	printf("Humedad: %f\r\n",humid);
+	printf("Temperatura: %f\r\n",temp);
 }
 
 
