@@ -30,15 +30,15 @@
 #define BUTTON_PIN	13
 
 #define AN0_GPIO	GPIOA
-#define AN0_Pin		0
+#define AN0_Pin		0		//IN0
 
 #define AN1_GPIO	GPIOA
-#define AN1_Pin		1
+#define AN1_Pin		1		//IN1
 
 #define AN4_GPIO	GPIOA
-#define AN4_Pin		4
+#define AN4_Pin		4		//IN4
 
-EXTI_Config_t button_exti = {.en = 0};
+EXTI_Config_t button_exti = {.en = 0}; //Desactivamos EXTI del GPIO
 
 /* Tipos, estructuras y enumeraciones */
 #if MODE == SINGLE_NO_SCAN
@@ -67,10 +67,30 @@ ADC1_Params_t adc1_config1 =	{		.resolution = ADC1_Res_12bit,
 										.clk_div = ADC1_PCLK_DIV4,
 										.conversion_mode = ADC1_Single_Mode,
 										.scan_mode = ADC1_Scan_On,
-										.eocs_var = ADC1_At_Sequence,
+										.eocs_var = ADC1_At_Regular,
 										.adc_interrupt = ADC1_Interrupt_Off
 									};
 
+#elif MODE == CONTINUOUS_SCAN
+
+ADC1_Params_t adc1_config1 =	{		.resolution = ADC1_Res_12bit,
+										.align_mode = ADC1_Right_Align,
+										.clk_div = ADC1_PCLK_DIV4,
+										.conversion_mode = ADC1_Continuous_Mode,
+										.scan_mode = ADC1_Scan_On,
+										.eocs_var = ADC1_At_Regular,
+										.adc_interrupt = ADC1_Interrupt_Off
+									};
+#elif MODE == INTERRUPT
+
+ADC1_Params_t adc1_config1 =	{		.resolution = ADC1_Res_12bit,
+										.align_mode = ADC1_Right_Align,
+										.clk_div = ADC1_PCLK_DIV4,
+										.conversion_mode = ADC1_Single_Mode,
+										.scan_mode = ADC1_Scan_On,
+										.eocs_var = ADC1_At_Sequence,
+										.adc_interrupt = ADC1_Interrupt_On
+									};
 
 #endif
 
@@ -78,10 +98,11 @@ ADC1_Params_t adc1_config1 =	{		.resolution = ADC1_Res_12bit,
 /* Variables globales */
 uint16_t pot0 = 0;
 uint16_t pot1 = 0;
+uint8_t flag_start = 0;
 
 /* Prototipo de funciones */
 void adc1_ch_config(void);
-
+void adc_user_handler(); //Extern created in stm32f4xx_it.c
 
 /* Función principal */
 int main(void)
@@ -99,28 +120,41 @@ int main(void)
 	GPIO_Input_Config(BUTTON_GPIO, BUTTON_PIN, PULL_NONE, &button_exti);
 	GPIO_Analog_Config(AN0_GPIO, AN0_Pin, ADC1_Cycles_3);
 	GPIO_Analog_Config(AN1_GPIO, AN1_Pin, ADC1_Cycles_3);
-
+	printf("Configuracion de canales ADC listos con clock -> %lu\n",SystemCoreClock);
 	adc1_config(&adc1_config1);
-	ADC1->SQR1 |= (0x1<<ADC_SQR1_L_Pos); //2 conversions
-	ADC1->SQR3 |= (AN0_Pin<<ADC_SQR3_SQ1_Pos | AN1_Pin<<ADC_SQR3_SQ2_Pos);
-
+#if MODE == SINGLE_NO_SCAN
+	ADC1->SQR1 &= ~ (0b1111<<0);
+	ADC1->SQR3 |= (AN1_Pin<<ADC_SQR3_SQ1_Pos); //Primero AN1
+	ADC1->SQR3 |= (AN0_Pin<<ADC_SQR3_SQ2_Pos); //Segundo AN0
+#elif MODE == CONTINUOUS_NO_SCAN
+	ADC1->SQR1 &= ~ (0b1111<<0);
+	ADC1->SQR3 |= (AN0_Pin<<ADC_SQR3_SQ1_Pos);
+#elif MODE == SINGLE_SCAN
+	ADC1->SQR1 &= ~(0b1111<<0);
+	ADC1->SQR1 |= (1<<ADC_SQR1_L_Pos);
+	ADC1->SQR3 |= ((AN1_Pin<<ADC_SQR3_SQ1_Pos)|(AN0_Pin<<ADC_SQR3_SQ2_Pos));
+#elif MODE == CONTINUOUS_SCAN
+	ADC1->SQR1 &= ~(0b1111<<0);
+	ADC1->SQR1 |= (1<<ADC_SQR1_L_Pos);
+	ADC1->SQR3 |= ((AN1_Pin<<ADC_SQR3_SQ1_Pos)|(AN0_Pin<<ADC_SQR3_SQ2_Pos));
+#endif
 
 	while(1)
 	{
 
 #if MODE == SINGLE_NO_SCAN
 		//El pulsador activará la conversión
-		if(GPIO_ReadPin(BUTTON_GPIO, BUTTON_PIN) == GPIO_PIN_RESET)
+		/*if(GPIO_ReadPin(BUTTON_GPIO, BUTTON_PIN) == GPIO_PIN_RESET)
 		{
 			delay_ms(20);
 			//Solo se obtendrá el valor del ADC convertido cada vez que el botón se active
 			pot0 = adc1_read_data_Polling();
-		}
+		}*/
 
 		/*Lectura directa cada 10ms*/
-		/*
-		pot = adc1_read_data();
-		delay_ms(10);*/
+
+		pot0 = adc1_read_regular();
+		delay_ms(10);
 
 #elif MODE == CONTINUOUS_NO_SCAN
 
@@ -131,27 +165,83 @@ int main(void)
 		if(GPIO_ReadPin(BUTTON_GPIO, BUTTON_PIN) == GPIO_PIN_RESET)
 		{
 			delay_ms(20);
-			pot0 = adc1_read_data_Polling();
+			pot0 = adc1_read_regular();
 		}
 
 #elif MODE == SINGLE_SCAN
 
 	//El pulsador activará la conversión
+	//if(GPIO_ReadPin(BUTTON_GPIO, BUTTON_PIN) == GPIO_PIN_RESET) //Comenté el if para no estar pulsando el botón
+	//{
+		delay_ms(500);
+		//Solo se obtendrá el valor del ADC convertido cada vez que el botón se active
+		adc1_start_regular_conversion();
+		//Esperemos a que el flag se active
+		while(!(ADC1->SR & ADC_SR_EOC));
+		//Retornamos valor
+		pot0 = ((uint16_t)(ADC1->DR & 0x0000FFFF));
+		printf("Pot 0 -> %u\n", pot0);
+		delay_ms(10);
+		//Esperemos a que el flag se active
+		while(!(ADC1->SR & ADC_SR_EOC));
+		//Retornamos valor
+		pot1 = ((uint16_t)(ADC1->DR & 0x0000FFFF));
+		printf("Pot 1 -> %u\n\n", pot1);
+	//}
+
+#elif MODE == CONTINUOUS_SCAN
+
+
+		//Solo le damos start una vez
+		if(GPIO_ReadPin(BUTTON_GPIO, BUTTON_PIN) == GPIO_PIN_RESET)
+		{
+			adc1_start_regular_conversion();
+			flag_start = 1;
+		}
+
+		if(flag_start)
+		{
+			//Esperemos a que el flag se active
+			while(!(ADC1->SR & ADC_SR_EOC));
+			//Retornamos valor
+			pot0 = ((uint16_t)(ADC1->DR & 0x0000FFFF));
+			delay_ms(10);
+			//Esperemos a que el flag se active
+			while(!(ADC1->SR & ADC_SR_EOC));
+			//Retornamos valor
+			pot1 = ((uint16_t)(ADC1->DR & 0x0000FFFF));
+			delay_ms(10);
+		}
+
+#elif MODE == INTERRUPT
+
 	if(GPIO_ReadPin(BUTTON_GPIO, BUTTON_PIN) == GPIO_PIN_RESET)
 	{
-		delay_ms(20);
-		//Solo se obtendrá el valor del ADC convertido cada vez que el botón se active
-		pot0 = adc1_read_data_Polling();
-		pot1 = adc1_read_data_Polling();
+		delay_ms(500);
+		adc1_start_regular_conversion();
 	}
 
+
 #endif
+
 	}
 }
 
 /* Definición de funciones */
+int __io_putchar(int ch)
+{
+	uint8_t c = ch & 0xFF;
+	ITM_SendChar(c);
+	return ch;
+}
 
 
+void adc_user_handler(void)
+{
+	//Luego de empezar el start, se esperará a que realice la conversión e ingresará a la función
+	pot0 = ((uint16_t)(ADC1->DR & 0x0000FFFF));
+	printf("Pot 0 -> %u\n", pot0);
+}
 
 
 
