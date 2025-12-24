@@ -1,4 +1,9 @@
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	2
 D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:2064:26:ITM_SendChar	4
-../Src/main.c:108:5:main	2
-../Src/main.c:231:5:__io_putchar	1
-../Src/main.c:239:6:adc_user_handler	1
+../Src/main.c:82:5:main	2
+../Src/main.c:135:5:__io_putchar	1
+../Src/main.c:143:6:adc_user_handler	1
+../Src/main.c:150:6:DMA2_Stream4_Config	2
+../Src/main.c:222:6:timer2_trgo	1
+../Src/main.c:240:6:DMA_TransmitCpltCallback	1
+../Src/main.c:246:6:DMA_HalfTransmitCpltCallback	1

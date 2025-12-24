@@ -23,7 +23,7 @@
  *  La comunicación puede ser síncrona (3 hilos) o asíncrona (2 hilos)
  *  La DATA puede ser de 8 bits o 9 bits (Registro CR1)
  *  La comunicación puede tener 1 o 2 bits de stop (Estos bits se toman de DATA)
- * 	Posee un registro BAUDRATE del tipo fraccionario (Mantida y Fracción) que depende del OVERSAMPLING
+ * 	Posee un registro BAUDRATE del tipo fraccionario (Mantisa y Fracción) que depende del OVERSAMPLING
  * 		Si el OVERSAMPLING es 0, entonces, se prioriza la seguridad e integridad de los datos.
  * 		Si el OVERSAMPLING es 1, entonces, se prioriza la velocidad máxima de transmisión.
  *  Protecciónes: Paridad (Transmisión y recepción).

@@ -35,8 +35,17 @@
 #define AN1_GPIO	GPIOA
 #define AN1_Pin		1		//IN1
 
-#define AN4_GPIO	GPIOA
-#define AN4_Pin		4		//IN4
+#define AN2_GPIO	GPIOA
+#define AN2_Pin		4		//IN4
+
+#define AN3_GPIO	GPIOB
+#define AN3_Pin		0		//IN8
+
+#define AN4_GPIO	GPIOC
+#define AN4_Pin		1		//IN11
+
+#define AN5_GPIO	GPIOC
+#define AN5_Pin		0		//IN10
 
 EXTI_Config_t button_exti = {.en = 0}; //Desactivamos EXTI del GPIO
 
@@ -48,21 +57,24 @@ ADC1_Params_t adc1_config1 =	{		.resolution = ADC1_Res_12bit,
 										.conversion_mode = ADC1_Single_Mode,
 										.scan_mode = ADC1_Scan_On,
 										.eocs_var = ADC1_At_Sequence,
-										.adc_interrupt = ADC1_Interrupt_On
+										.adc_interrupt = ADC1_Interrupt_Off,
+										.adc_dma = ADC1_DMA_On,
+										.seq_config = { .seq_lenght = 6,
+														.seq = {0,1,4,8,11,10}}
 									};
-
-
 
 /* Variables globales */
 uint16_t pot0 = 0;
 uint16_t pot1 = 0;
 uint8_t flag_start = 0;
 uint16_t adcData[6];
+uint8_t end_of_conversion = 0;
 
 /* Prototipo de funciones */
-void adc1_ch_config(void);
 void adc_user_handler(); //Extern created in stm32f4xx_it.c
 void DMA2_Stream4_Config(void);
+
+void timer2_trgo(void);
 
 /* Función principal */
 int main(void)
@@ -77,19 +89,42 @@ int main(void)
 
 	printf("Configuracion del systick System Clock -> %lu\n",SystemCoreClock);
 
+	/*DMA*/
+	DMA2_Stream4_Config();
+	printf("Configuracion del DMA\n");
+
 	/*GPIO Config*/
 	GPIO_Output_Config(GPIOA, 5, PUPDR_NONE, OSPEEDR_HIGH, OTYPER_PP);
 	GPIO_Input_Config(BUTTON_GPIO, BUTTON_PIN, PULL_NONE, &button_exti);
-	GPIO_Analog_Config(AN0_GPIO, AN0_Pin, ADC1_Cycles_3);
-	GPIO_Analog_Config(AN1_GPIO, AN1_Pin, ADC1_Cycles_3);
+	GPIO_Analog_Config(AN0_GPIO, AN0_Pin, ADC1_Cycles_84);
+	GPIO_Analog_Config(AN1_GPIO, AN1_Pin, ADC1_Cycles_84);
+	GPIO_Analog_Config(AN2_GPIO, AN2_Pin, ADC1_Cycles_84);
+	GPIO_Analog_Config(AN3_GPIO, AN3_Pin, ADC1_Cycles_84);
+	GPIO_Analog_Config(AN4_GPIO, AN4_Pin, ADC1_Cycles_84);
+	GPIO_Analog_Config(AN5_GPIO, AN5_Pin, ADC1_Cycles_84);
+
 	adc1_config(&adc1_config1);
+	adc1_disable();
+	ADC1->CR2 |= 1U<<ADC_CR2_EXTEN_Pos; //Rising
+	ADC1->CR2 |= 6U<<ADC_CR2_EXTSEL_Pos; //timer2 trgo
+	adc1_enable();
+	timer2_trgo();
+
 	printf("Configuracion de ADC\n");
 
 	while(1)
 	{
+		if(end_of_conversion)
+		{
+			end_of_conversion = 0;
+			printf("Ch 0: %u\r\n", adcData[0]);
+			printf("Ch 1: %u\r\n", adcData[1]);
+			printf("Ch 2: %u\r\n", adcData[2]);
+			printf("Ch 3: %u\r\n", adcData[3]);
+			printf("Ch 4: %u\r\n", adcData[4]);
+			printf("Ch 5: %u\r\n\n", adcData[5]);
 
-
-
+		}
 
 	}
 }
@@ -122,7 +157,7 @@ void DMA2_Stream4_Config(void)
 	while(DMA2_Stream4->CR & DMA_SxCR_EN);
 
 	//Deshabilitar LISR o HISR antes de habilitar stream
-	DMA2->LIFCR |= ((0xF<<2) + 1U);
+	DMA2->HIFCR |= ((0xF<<2) + 1U);
 
 	//Seleccionar el peripheral address (En este caso del ADC en Memory Map + registro a leer)
 	DMA2_Stream4->PAR = (uint32_t)(0x40012000 + 0x4C); //ADC Base + DR register
@@ -132,18 +167,18 @@ void DMA2_Stream4_Config(void)
 	DMA2_Stream4->M0AR = (uint32_t)adcData;
 
 	//Configurar el total número de datos a transferirse
-	DMA2_Stream4->NDTR = 6;
+	DMA2_Stream4->NDTR = 6U;
 
 	//Seleccionar el canal DMA
-	DMA2_Stream4->CR &= ~DMA_SxCR_CHSEL_0; //Channel 0 del Stream 4
+	DMA2_Stream4->CR &= ~DMA_SxCR_CHSEL_Msk; //Channel 0 del Stream 4
 
 	//Se omite aquí un paso del reference manual
 
 	//Configurar prioridad
 	DMA2_Stream4->CR &= ~DMA_SxCR_PL;
-	DMA2_Stream4->CR |= (0b11<<DMA_SxCR_PFCTRL_Pos); //High priority
+	DMA2_Stream4->CR |= (0b11U<<DMA_SxCR_PL_Pos); //High priority
 
-	//Configurar FIFO
+	//Configurar Directo Mode o FIFO
 	DMA2_Stream4->FCR &= ~DMA_SxFCR_DMDIS; //Direct mode
 
 	//Fifo threshold (no afecta en nada si utilizamos el direct mode)
@@ -154,25 +189,63 @@ void DMA2_Stream4_Config(void)
 	DMA2_Stream4->CR &= ~DMA_SxCR_PINCOS; //None
 
 	//Memory data size
-	DMA2_Stream4->CR &= ~DMA_SxCR_MSIZE; //half word - 16 bit
-	DMA2_Stream4->CR |= (0b01<<DMA_SxCR_MSIZE_Pos);
+
+	DMA2_Stream4->CR &= ~DMA_SxCR_MSIZE;
+	DMA2_Stream4->CR |= (0b01U<<DMA_SxCR_MSIZE_Pos); //half word - 16 bit
 
 	//Peripheral data size
-	DMA2_Stream4->CR &= ~DMA_SxCR_PSIZE; //half word - 16 bit
-	DMA2_Stream4->CR |= (0b01<<DMA_SxCR_PSIZE_Pos);
+	DMA2_Stream4->CR &= ~DMA_SxCR_PSIZE;
+	DMA2_Stream4->CR |= (0b01U<<DMA_SxCR_PSIZE_Pos); //half word - 16 bit
 
-	//Memory increment mode (el periférico es fijo)
-	DMA2_Stream4->CR |= (1<<DMA_SxCR_MINC_Pos);
+	//Peripheral increment mode (el periférico es fijo)
+	DMA2_Stream4->CR &= ~DMA_SxCR_PINC_Msk;
+
+	//Memory increment mode
+	DMA2_Stream4->CR &= ~DMA_SxCR_MINC_Msk;
+	DMA2_Stream4->CR |= (1U<<DMA_SxCR_MINC_Pos);
 
 	//Modo circular
-	DMA2_Stream4->CR |= (1<<DMA_SxCR_CIRC_Pos);
+	DMA2_Stream4->CR |= (1U<<DMA_SxCR_CIRC_Pos);
 
 	//Configurar interrupciones
+	DMA2_Stream4->CR |= ((1U<<DMA_SxCR_DMEIE_Pos)|(1U<<DMA_SxCR_TEIE_Pos)|(1U<<DMA_SxCR_HTIE_Pos)|(1U<<DMA_SxCR_TCIE_Pos));
 
+	NVIC_EnableIRQ(DMA2_Stream4_IRQn);
+
+	//Habilitar el stream
+	DMA2_Stream4->CR |= DMA_SxCR_EN;
 
 }
 
 
+void timer2_trgo(void)
+{
+	/*Activamos RCC del TIM4*/
+	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+	/*Calculo del prescaler*/
+	TIM2->CR1 &= ~TIM_CR1_CEN; //Deshabilitamos timer
+	TIM2->PSC = 8400U - 1U;
+	/*Calculo del auto-reload*/
+	TIM2->ARR = 10000U - 1U;
+	/**/
+	TIM2->EGR |= TIM_EGR_UG;
+	/*Master TRGO*/
+	TIM2->CR2 &= ~TIM_CR2_MMS_Msk;
+	TIM2->CR2 |= 0b010U<<TIM_CR2_MMS_Pos; //In Update
+	/*Activamos conteo*/
+	TIM2->CR1 |= TIM_CR1_CEN;
+}
+
+void DMA_TransmitCpltCallback(void)
+{
+	end_of_conversion = 1;
+	return;
+}
+
+void DMA_HalfTransmitCpltCallback(void)
+{
+	return;
+}
 
 
 

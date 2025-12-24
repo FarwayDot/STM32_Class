@@ -36,7 +36,8 @@
 /* Private function prototypes -----------------------------------------------*/
 extern void GPIO_EXTI_Callback(uint8_t pin);
 extern void adc_user_handler(void);
-
+extern void DMA_TransmitCpltCallback(void);
+extern void DMA_HalfTransmitCpltCallback(void);
 /* Private user code ---------------------------------------------------------*/
 
 
@@ -144,6 +145,43 @@ void SysTick_Handler(void)
 void ADC_IRQHandler(void)
 {
 	adc_user_handler();
+	return;
+}
+
+void DMA2_Stream4_IRQHandler()
+{
+	//Transfer Complete
+	if(DMA2->HISR & (1<<DMA_HISR_TCIF4_Pos))
+	{
+		//Clear flag
+		DMA2->HIFCR |= DMA_HIFCR_CTCIF4;
+		//Evaluar
+		DMA_TransmitCpltCallback();
+	}
+	//Half Complete
+	if(DMA2->HISR & (1<<DMA_HISR_HTIF4_Pos))
+	{
+		//Clear flag
+		DMA2->HIFCR |= DMA_HIFCR_CHTIF4;
+		//Evaluar
+		DMA_HalfTransmitCpltCallback();
+	}
+	//Error Complete
+	if(DMA2->HISR & (1<<DMA_HISR_TEIF4_Pos))
+	{
+		//Clear flag
+		DMA2->HIFCR |= DMA_HIFCR_CTEIF4;
+		//Evaluar
+
+	}
+	//Direct Mode Error
+	if(DMA2->HISR & (1<<DMA_HISR_DMEIF4))
+	{
+		//Clear flag
+		DMA2->HIFCR |= DMA_HIFCR_CDMEIF4;
+		//Evaluar
+
+	}
 
 	return;
 }
