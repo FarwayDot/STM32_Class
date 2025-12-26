@@ -37,6 +37,7 @@
 extern void DMA_TransmitCpltCallback(void);
 extern void DMA_HalfTransmitCpltCallback(void);
 extern void TIM2_Callback(void);
+extern void USART2_Callback(void);
 /* Private user code ---------------------------------------------------------*/
 
 
@@ -140,6 +141,17 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
+
+void USART2_IRQHandler()
+{
+	//Al detectar recepción
+	if(USART2->SR & USART_SR_RXNE)
+	{
+		USART2_Callback();
+	}
+
+	return;
+}
 
 void TIM2_IRQHandler()
 {

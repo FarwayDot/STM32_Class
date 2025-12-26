@@ -75,17 +75,55 @@ volatile uint16_t pot0 = 0;
 volatile uint32_t pwm_val = 0;
 uint8_t Tx_Data[100] = {0};
 
+volatile uint8_t Rx_Data = 0;
+uint16_t pwm_val_man = 0;
+
+uint8_t len_data_text = 0;
+uint8_t Data_Text[100] = {0};
+
+typedef enum
+{
+	State_TIM2_Start,
+	State_TIM2_Pause,
+	State_Manual,
+	State_Automatic
+}Remote_Control_State_e;
+
+typedef struct
+{
+	uint8_t flag_usart_rx;
+	uint8_t flag_usart_rx_2;
+	uint8_t flag_state1;
+	uint8_t flag_state2;
+	uint8_t flag_state2_last;
+	uint8_t flag_tim2_update;
+}User_Flags_t;
+
+User_Flags_t user_flags = { .flag_usart_rx = 0,
+							.flag_usart_rx_2 = 0,
+							.flag_state1 = 0,
+							.flag_state2 = 0,
+							.flag_state2_last = 0,
+							.flag_tim2_update = 0,
+};
+
+
 /* Prototipo de funciones */
 void DMA2_Stream0_Ch0_Config(void); //Extern created in stm32f4xx_it.c
+
 void timer2_config(void);
+
 void adc_user_handler(void);
+
 void timer3_ch1_pwm_config(void);
-void tim3_PWM_Start(uint32_t num);
-void tim3_pwm_update(uint32_t num);
+void tim3_pwm_update(uint32_t adc_val);
+
+void USART2_Reconfig_IT(void);
 
 /* Función principal */
 int main(void)
 {
+
 	flash_config();
 	PLL_Config(HSI_SOURCE);
 	#if USE_DELAY_US == 1
@@ -93,6 +131,10 @@ int main(void)
 	#else
 		Delay_Init(SystemCoreClock/1000);
 	#endif
+
+	user_flags.flag_usart_rx = 1;
+	user_flags.flag_state1 = State_TIM2_Start;
+	user_flags.flag_state2 = State_Automatic;
 
 	/*DMA*/
 	DMA2_Stream0_Ch0_Config();
@@ -116,22 +158,70 @@ int main(void)
 	//USART1_Config
 	USARTx_Init(&USART2_Config);
 
+	//Reconfig USART para no modificar la librería
+	USART2_Reconfig_IT();
+
 	//Config TIM2
 	timer2_config();
 
 	//Config TIM3
 	timer3_ch1_pwm_config();
-	tim3_PWM_Start(0);
 	delay_ms(1000);
 
 	while(1)
 	{
-		/*
-		for(uint8_t i = 0; i<100;i++)
+
+		if(user_flags.flag_usart_rx)
 		{
-			tim3_pwm_update(i);
-			delay_ms(500);
-		}*/
+			switch(user_flags.flag_state1)
+			{
+				case State_TIM2_Start: //TIM2 envía los datos cada 1seg
+
+					//Activamos conteo
+					TIM2->CR1 |= TIM_CR1_CEN;
+
+					break;
+				case State_TIM2_Pause: //TIM2 se pausa y no se envían datos
+
+					//Pausamos conteo
+					TIM2->CR1 &= ~TIM_CR1_CEN;
+				default: break;
+			}
+
+			switch(user_flags.flag_state2)
+			{
+				case State_Manual:
+
+						//Definimos un máximo y mínimo algo grandes por el paso de 100 en 100 pero
+						//se puede mofificar
+						if(Rx_Data == '+')
+						{
+							if(pwm_val_man<=3995)
+							{
+								pwm_val_man += 100 ;
+							}
+
+						}
+						else if(Rx_Data == '-')
+						{
+							if(pwm_val_man>100)
+							{
+								pwm_val_man -= 100 ;
+							}
+						}
+
+					break;
+
+				case State_Automatic:
+
+					break;
+
+				default: break;
+			}
+			Rx_Data = 0;
+			user_flags.flag_usart_rx = 0;
+		}
+
 	}
 }
 
@@ -236,14 +326,31 @@ void TIM2_Callback(void)
 	//Verificamos que se cumple el tiempo con el toggle
 	GPIO_Write_Toggle(USER_LED_GPIO, USER_LED_PIN);
 
-	//Enviamos data
-	len = sprintf((char*)Tx_Data, "%u\n", pot0);
-	USART_Send_Data(USART2, Tx_Data, len);
+	//Print
 
-	//salida pwm actualizada
-	pwm_val = (((uint32_t)pot0)*100)/4095;
+	switch(user_flags.flag_state2)
+	{
+		case State_Manual: //Esperamos a que aumente o diminuya PWM con caracteres
 
-	tim3_pwm_update(pwm_val);
+			//Enviamos data
+			len = sprintf((char*)Tx_Data,"Man: %u\n", pwm_val_man);
+			USART_Send_Data(USART2, Tx_Data, len);
+			tim3_pwm_update(pwm_val_man);
+
+			break;
+
+		case State_Automatic: //El ADC controla actualiza el valor del pwm
+
+			//Enviamos data
+			len = sprintf((char*)Tx_Data, "Auto: %u\n", pot0);
+			USART_Send_Data(USART2, Tx_Data, len);
+			tim3_pwm_update(pot0);
+
+			break;
+
+		default: break;
+
+	}
 
 	return;
 }
@@ -302,14 +409,8 @@ void timer3_ch1_pwm_config(void)
 	TIM3->CCMR1 |= TIM_CCMR1_OC1PE; //Active preloaded CCR para evitar problemas
 	TIM3->CR1 |= TIM_CR1_ARPE; //Active preloaded ARR para evitar problemas
 
-	return;
-
-}
-
-void tim3_PWM_Start(uint32_t num)
-{
 	TIM3->CCR1 &= ~TIM_CCR1_CCR1_Msk; //Registro a comparar
-	TIM3->CCR1 = num-1; // Valor de comparación inicial
+	TIM3->CCR1 = 10-1; // Valor de comparación inicial
 
 	TIM3->CCER |= TIM_CCER_CC1E; //Habilitamos Output Compare
 
@@ -322,12 +423,89 @@ void tim3_PWM_Start(uint32_t num)
 	return;
 }
 
-void tim3_pwm_update(uint32_t num)
+/*
+ * @brief Update PWM output
+ *
+ * adc_val: Valor del ADC de 0-4095
+ *
+ */
+
+void tim3_pwm_update(uint32_t adc_val)
 {
-	TIM3->CCR1 = num-1;
+	if((adc_val>0) & (adc_val< 4096))
+	{
+		//Conversión adc a pwm
+		pwm_val = (adc_val*100)/4095;
+
+		//Actualizamos pwm
+		TIM3->CCR1 = pwm_val-1U;
+	}
+
 	return;
 }
 
+/*
+ * @brief Reconfig USART : RECEPTION_IT, PRIORITY
+ */
+
+void USART2_Reconfig_IT(void)
+{
+	//desactivamos transmisión y recepción y usart
+	USART2->CR1 &= ~(1U<<USART_CR1_UE_Pos | 1U<<USART_CR1_TE_Pos | 1U<<USART_CR1_RE_Pos | 1U<<USART_CR1_IDLEIE_Pos);
+	//rx interr enable (ORE no lo tocamos por ahora, solo es para un byte de datos)
+	USART2->CR1 |= (1U<<USART_CR1_RXNEIE_Pos);
+	//NVIC
+	NVIC_EnableIRQ(USART2_IRQn);
+	NVIC_SetPriority(USART2_IRQn, 6U); //prior 6 : debe ser mayor que dma2_stream0 y tim2
+	//habilitamos tx, rx y usart
+	USART2->CR1 |= 1U<<USART_CR1_TE_Pos | 1U<<USART_CR1_RE_Pos;
+	USART2->CR1 |= 1U<<USART_CR1_UE_Pos;
+}
+
+/*
+ * @brief Usart dentro del hanlder del USART2 para la recepción
+ */
+void USART2_Callback(void)
+{
+	Rx_Data = USART2->DR; //Recepcionamos dato y la bandera se desactiva automáticamente
+
+	switch(Rx_Data)
+	{
+	case 'S':
+		user_flags.flag_state1 = State_TIM2_Start;
+		len_data_text = sprintf((char*)Data_Text, "Mode Start Transmision\r\n");
+		USARTx_Send_Data(USART2, Data_Text, len_data_text);
+
+		break;
+	case 'P':
+		user_flags.flag_state1 = State_TIM2_Pause;
+		len_data_text = sprintf((char*)Data_Text, "Mode Pause Transmision\r\n");
+		USARTx_Send_Data(USART2, Data_Text, len_data_text);
+		break;
+	case 'M':
+
+		if(user_flags.flag_state2 == State_Manual)
+		{
+			user_flags.flag_state2 = State_Automatic;
+			user_flags.flag_state2_last = user_flags.flag_state2;
+			len_data_text = sprintf((char*)Data_Text, "Mode Automatic\r\n");
+			USARTx_Send_Data(USART2, Data_Text, len_data_text);
+		}
+		else if(user_flags.flag_state2 == State_Automatic)
+		{
+			user_flags.flag_state2 = State_Manual;
+			user_flags.flag_state2 = user_flags.flag_state2;
+			len_data_text = sprintf((char*)Data_Text, "Mode Manual\r\n");
+			USARTx_Send_Data(USART2, Data_Text, len_data_text);
+		}
+
+		break;
+	default: break;
+	}
+
+	user_flags.flag_usart_rx = 1;
+	return;
+}
 void DMA_TransmitCpltCallback(void)
 {
 	return;

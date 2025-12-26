@@ -32,6 +32,7 @@
 #define STOP_ONE	0
 #define STOP_HALF	1
 #define STOP_TWO	2
+#define STOP_ONE_HALF 3
 
 #define PARITY_DIS	0
 #define PARITY_EN	1

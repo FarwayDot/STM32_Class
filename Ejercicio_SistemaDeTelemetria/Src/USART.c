@@ -254,7 +254,7 @@ void USARTx_Init(USARTx_Config_t* USARTx_Config)
 	if((USARTx_Config -> stop_bit) ==  STOP_ONE)
 	{
 		//Nothing
-		USARTx_Config -> USARTx -> CR2 |= USART_CR2_STOP_Msk;
+		USARTx_Config -> USARTx -> CR2 &= ~USART_CR2_STOP_Msk;
 
 	}
 	else if((USARTx_Config -> stop_bit) ==  STOP_HALF)
