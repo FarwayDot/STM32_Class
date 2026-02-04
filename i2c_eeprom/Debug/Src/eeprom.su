@@ -1,0 +1,3 @@
+../Src/eeprom.c:15:9:EEPROM_Write_N_byte	32	static
+../Src/eeprom.c:71:9:EEPROM_Read_Current_byte	32	static
+../Src/eeprom.c:118:9:EEPROM_Read_N_Bytes	32	static

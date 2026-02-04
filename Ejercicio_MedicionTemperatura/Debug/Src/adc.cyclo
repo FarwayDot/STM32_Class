@@ -1,0 +1,7 @@
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	2
+../Src/adc.c:20:6:adc1_config	4
+../Src/adc.c:82:6:adc1_start_regular_conversion	1
+../Src/adc.c:92:10:adc1_read_regular	2
+../Src/adc.c:108:6:Sequence_config	6
+../Src/adc.c:151:6:adc1_enable	1
+../Src/adc.c:161:6:adc1_disable	1

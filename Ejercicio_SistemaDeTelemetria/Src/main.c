@@ -159,7 +159,7 @@ int main(void)
 	USARTx_Init(&USART2_Config);
 
 	//Reconfig USART para no modificar la librería
-	USART2_Reconfig_IT();
+	//USART2_Reconfig_IT();
 
 	//Config TIM2
 	timer2_config();

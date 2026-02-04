@@ -1,0 +1,11 @@
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	2
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1775:22:__NVIC_ClearPendingIRQ	2
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1814:22:__NVIC_SetPriority	2
+../Src/GPIO_Config.c:26:6:GPIO_Input_Config	12
+../Src/GPIO_Config.c:78:9:GPIO_ReadPin	3
+../Src/GPIO_Config.c:119:6:GPIO_Output_Config	7
+../Src/GPIO_Config.c:152:6:GPIO_Write	3
+../Src/GPIO_Config.c:184:6:GPIO_Write_Toggle	3
+../Src/GPIO_Config.c:221:6:EXTI_Config	20
+../Src/GPIO_Config.c:338:6:GPIO_Analog_Config	10
+../Src/GPIO_Config.c:376:6:GPIO_AF_Config	7

@@ -1,0 +1,4 @@
+../Src/i2c.c:12:6:I2C_GPIO_Config	1
+../Src/i2c.c:29:6:I2C_Config	1
+../Src/i2c.c:73:6:I2C_Master_Send_Data	11
+../Src/i2c.c:139:6:I2C_Master_Receive_Data	10

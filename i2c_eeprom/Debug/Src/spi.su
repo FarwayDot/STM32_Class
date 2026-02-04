@@ -1,0 +1,7 @@
+../Src/spi.c:20:6:SPI_GPIO_Config	16	static
+../Src/spi.c:49:6:SPI_Init	16	static
+../Src/spi.c:96:6:SPI_Send_Data	24	static
+../Src/spi.c:136:6:SPI_Send_Receive_Data	24	static
+../Src/spi.c:183:6:SPI_Receive_Data	24	static
+../Src/spi.c:218:6:SPI_Master_Receive_Data	24	static
+../Src/spi.c:261:6:SPI_Send_Byte	16	static
