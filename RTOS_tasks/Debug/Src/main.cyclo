@@ -1,0 +1,5 @@
+../Src/main.c:75:5:main	4
+../Src/main.c:124:6:RedTask	2
+../Src/main.c:149:6:GreenTask	1
+../Src/main.c:164:6:BlueTask	1
+../Src/main.c:178:5:__io_putchar	2

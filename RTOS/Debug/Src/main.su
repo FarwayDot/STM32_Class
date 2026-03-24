@@ -1,0 +1,4 @@
+../Src/main.c:72:5:main	24	static
+../Src/main.c:112:6:Task_Led	24	static
+../Src/main.c:140:6:Task_Button	16	static
+../Src/main.c:158:5:__io_putchar	24	static

@@ -1,0 +1,14 @@
+../Src/lcd.c:76:11:SPI_WriteByte	4
+../Src/lcd.c:107:6:LCD_WR_REG	1
+../Src/lcd.c:122:6:LCD_WR_DATA	1
+../Src/lcd.c:138:6:LCD_WriteReg	1
+../Src/lcd.c:151:6:LCD_WriteRAM_Prepare	1
+../Src/lcd.c:163:6:Lcd_WriteData_16Bit	1
+../Src/lcd.c:180:6:LCD_DrawPoint	1
+../Src/lcd.c:193:6:LCD_Clear	3
+../Src/lcd.c:216:6:LCD_GPIOInit	1
+../Src/lcd.c:230:6:LCD_RESET	1
+../Src/lcd.c:245:6:LCD_Init	1
+../Src/lcd.c:359:6:LCD_SetWindows	1
+../Src/lcd.c:384:6:LCD_SetCursor	1
+../Src/lcd.c:399:6:LCD_direction	5

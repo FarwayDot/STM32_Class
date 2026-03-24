@@ -1,0 +1,6 @@
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:2064:26:ITM_SendChar	4
+../Src/main.c:80:5:main	2
+../Src/main.c:132:6:MPU_Read_Accel	1
+../Src/main.c:156:6:MPU_Angles	1
+../Src/main.c:168:6:MPU_Offset_Calibration	2
+../Src/main.c:202:5:__io_putchar	1

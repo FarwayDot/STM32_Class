@@ -225,7 +225,7 @@ Discarded input sections
  .text.EEPROM_Write_N_byte
                 0x00000000      0x144 ./Src/eeprom.o
  .text.EEPROM_Read_Current_byte
-                0x00000000       0xf6 ./Src/eeprom.o
+                0x00000000       0xdc ./Src/eeprom.o
  .debug_macro   0x00000000      0xae4 ./Src/eeprom.o
  .debug_macro   0x00000000       0x28 ./Src/eeprom.o
  .debug_macro   0x00000000       0x28 ./Src/eeprom.o
@@ -266,7 +266,7 @@ Discarded input sections
  .text.I2C_Master_Send_Data
                 0x00000000       0xfc ./Src/i2c.o
  .text.I2C_Master_Receive_Data
-                0x00000000      0x118 ./Src/i2c.o
+                0x00000000      0x148 ./Src/i2c.o
  .debug_macro   0x00000000      0xae4 ./Src/i2c.o
  .debug_macro   0x00000000       0x28 ./Src/i2c.o
  .debug_macro   0x00000000       0x28 ./Src/i2c.o
@@ -1317,16 +1317,16 @@ LOAD C:/ST/STM32CubeIDE_1.17.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.ext
  .debug_macro   0x0000efa8       0xca ./Src/main.o
  .debug_macro   0x0000f072       0xd8 ./Src/stm32f4xx_it.o
 
-.debug_line     0x00000000     0x3af4
+.debug_line     0x00000000     0x3b23
  .debug_line    0x00000000      0x595 ./Drivers/CMSIS/ST/system_stm32f4xx.o
  .debug_line    0x00000595      0x5b2 ./Src/Delay.o
  .debug_line    0x00000b47      0xb9c ./Src/GPIO_Config.o
  .debug_line    0x000016e3      0x674 ./Src/RCC.o
- .debug_line    0x00001d57      0x8db ./Src/eeprom.o
- .debug_line    0x00002632      0x7a8 ./Src/i2c.o
- .debug_line    0x00002dda      0x6f2 ./Src/main.o
- .debug_line    0x000034cc      0x5ad ./Src/stm32f4xx_it.o
- .debug_line    0x00003a79       0x7b ./Startup/startup_stm32f401retx.o
+ .debug_line    0x00001d57      0x8bd ./Src/eeprom.o
+ .debug_line    0x00002614      0x7f5 ./Src/i2c.o
+ .debug_line    0x00002e09      0x6f2 ./Src/main.o
+ .debug_line    0x000034fb      0x5ad ./Src/stm32f4xx_it.o
+ .debug_line    0x00003aa8       0x7b ./Startup/startup_stm32f401retx.o
 
 .debug_str      0x00000000    0x54865
  .debug_str     0x00000000    0x54865 ./Drivers/CMSIS/ST/system_stm32f4xx.o

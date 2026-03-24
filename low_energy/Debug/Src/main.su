@@ -1,0 +1,10 @@
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1722:22:__NVIC_DisableIRQ	16	static,ignoring_inline_asm
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1775:22:__NVIC_ClearPendingIRQ	16	static
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:2064:26:ITM_SendChar	16	static,ignoring_inline_asm
+../Src/main.c:91:5:main	16	static
+../Src/main.c:160:5:__io_putchar	24	static
+../Src/main.c:170:6:EXTI13_User_Handler	8	static
+../Src/main.c:181:6:Sleep_On_Exit_Config	24	static,ignoring_inline_asm
+../Src/main.c:239:6:Sleep_Mode_Config	24	static,ignoring_inline_asm
+../Src/main.c:338:6:tim4_init	24	static
+../Src/main.c:361:6:tim4_delay	16	static

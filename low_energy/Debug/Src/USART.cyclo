@@ -1,0 +1,17 @@
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	2
+D:/STM32_Paths/stm32f4/CMSIS/Include/core_cm4.h:1814:22:__NVIC_SetPriority	2
+../Src/USART.c:14:13:USART1_Pin_Configuration	1
+../Src/USART.c:35:13:USART2_Pin_Configuration	1
+../Src/USART.c:63:6:USART_Init	3
+../Src/USART.c:103:6:USART_Send_Byte	3
+../Src/USART.c:118:6:USART_Send_Data	6
+../Src/USART.c:161:6:USART_Receive_Data	6
+../Src/USART.c:205:10:HAL_RCC_GetPCLK1Freq	1
+../Src/USART.c:210:10:HAL_RCC_GetPCLK2Freq	1
+../Src/USART.c:215:6:USARTx_Init	9
+../Src/USART.c:289:6:USARTx_Init_IT	3
+../Src/USART.c:305:6:USARTx_Send_Data	6
+../Src/USART.c:348:6:USARTx_Receive_Data	6
+../Src/USART.c:397:9:USARTx_SendDataIT	2
+../Src/USART.c:417:9:USARTx_ReceiveDataIT	2
+../Src/USART.c:432:6:USARTx_IRQHandling	23

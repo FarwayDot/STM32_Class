@@ -146,58 +146,70 @@ void I2C_Master_Receive_Data(I2C_TypeDef *I2Cx, uint16_t SlaveAddr, uint8_t *pRx
 	//Esperar de que el bus esté libre
 	while(I2Cx->SR2 & (1U<<I2C_SR2_BUSY_Pos));
 
-	/*** 1. WRITE **/
+	//Start y verificamos
 	I2Cx->CR1 |= (1U<<I2C_CR1_START_Pos);
 	while(I2Cx->SR1 & (1U<<I2C_SR1_SB_Pos));
 
+	//Enviamos address e instrucción read|1
 	SlaveAddr = SlaveAddr<<1; //A7 - A1
 	SlaveAddr &= ~(1U); //A0 : Write
 	I2Cx->DR = SlaveAddr;
 
-	//Verificar fase de dirección se complete
-	while(!(I2Cx->SR1 & (1U<<I2C_SR1_ADDR_Pos)))
+/********************************/
+	if(Len == 1U)
 	{
-		// Si recibimos NACK (Nadie contestó)
-		if(I2Cx->SR1 & (1U<<I2C_SR1_AF_Pos))
-		{
-			// Generar STOP para liberar bus
-			I2Cx->CR1 |= (1U<<I2C_CR1_STOP_Pos);
-			// Limpiar bandera AF
-			I2Cx->SR1 &= ~(1U<<I2C_SR1_AF_Pos);
-			return;
-		}
+		//Según ref manual, se debe apagar el ACK si solo se lee un byte antes de limpiar ADDR
+		I2Cx->CR1 &= ~(1U<<I2C_CR1_ACK_Pos);
+
+		//Verificar y limpiar ADDR
+		while(!(I2Cx->SR1 & (1U<<I2C_SR1_ADDR_Pos)));
+		tmp = I2Cx->SR1;
+		tmp = I2Cx->SR2;
+		(void)tmp;
+
+		//Generar condición de parada
+		I2Cx->CR1 |= (1U<<I2C_CR1_STOP_Pos);
+
+		//Esperar RxNE se establezca
+		while(!(I2Cx->SR1 & (1U<<I2C_SR1_RXNE_Pos)));
+		//Leer datos
+		*pRxbuffer = I2Cx->DR;
 	}
-
-	//Limpiar flag ADDR
-	tmp = I2Cx->SR1;
-	tmp = I2Cx->SR2;
-	(void)tmp;
-
-	//Habilitar ACK
-	I2Cx->CR1 |= (1U<<I2C_CR1_ACK_Pos);
-
-	//Recibir datos
-	while(Len>0U)
+	else
 	{
-		if(Len == 1U)
+
+		//Activar ACK (antes para evitar que no llegue a tiempo luego de limpiar ADDR)
+		I2Cx->CR1 |= (1U<<I2C_CR1_ACK_Pos);
+
+		//Verificar y limpiar ADDR, inmediatamente después empieza a recibir
+		while(!(I2Cx->SR1 & (1U<<I2C_SR1_ADDR_Pos)));
+		tmp = I2Cx->SR1;
+		tmp = I2Cx->SR2;
+		(void)tmp;
+
+		while(Len>0U)
 		{
-			//Deshabilitar ACK
-			I2Cx->CR1 &= ~(1U<<I2C_CR1_ACK_Pos);
-			//Esperar RxNE se establezca
-			while(!(I2Cx->SR1 & (1U<<I2C_SR1_RXNE_Pos)));
-			//Generar condición de parada
-			I2Cx->CR1 |= (1U<<I2C_CR1_STOP_Pos);
-			//Leer datos
-			*pRxbuffer = I2Cx->DR;
-			Len--;
-		}
-		else
-		{
-			//Esperar RxNE se establezca
-			while(!(I2Cx->SR1 & (1U<<I2C_SR1_RXNE_Pos)));
-			*pRxbuffer = I2Cx->DR;
-			pRxbuffer++;
-			Len--;
+			//Se debe limpiar ACK y establecer STOP
+			if(Len == 1U)
+			{
+				//Deshabilitar ACK
+				I2Cx->CR1 &= ~(1U<<I2C_CR1_ACK_Pos);
+				//Generar condición de parada
+				I2Cx->CR1 |= (1U<<I2C_CR1_STOP_Pos);
+				//Esperar RxNE se establezca
+				while(!(I2Cx->SR1 & (1U<<I2C_SR1_RXNE_Pos)));
+				*pRxbuffer = I2Cx->DR;
+				Len--;
+			}
+			else
+			{
+				//Esperar RxNE se establezca
+				while(!(I2Cx->SR1 & (1U<<I2C_SR1_RXNE_Pos)));
+				*pRxbuffer = I2Cx->DR;
+				pRxbuffer++;
+				Len--;
+
+			}
 		}
 	}
 
